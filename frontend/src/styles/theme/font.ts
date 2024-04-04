@@ -1,5 +1,6 @@
 export const font = {
   inter: "Inter",
+  roboto: "Roboto",
 };
 
 type FontKeys = keyof typeof font;
