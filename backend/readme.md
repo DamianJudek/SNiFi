@@ -10,6 +10,9 @@ SNiFi is a simple threat detection system designed for small networks. It's buil
 cd backend
 ```
 
+
+
+### 1. Local development
 * Create a virtual environment:
 
 ```bash
@@ -32,4 +35,15 @@ pip install -r requirements.txt
 
 ```bash
 flask --app App run
+```
+
+### 2. Running in Docker
+* build container
+```bash
+docker image build -t snifi . 
+```
+
+* start docker
+```bash
+docker run -p 5000:5000 -d snifi 
 ```
