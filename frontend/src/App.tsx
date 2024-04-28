@@ -1,9 +1,13 @@
 import RouterContainer from "./routes/RouterContainer";
+import { ThemeProvider } from "styled-components";
+import theme from "./styles/theme/theme";
 
 function App() {
   return (
     <>
-      <RouterContainer />
+      <ThemeProvider theme={theme}>
+        <RouterContainer />
+      </ThemeProvider>
     </>
   );
 }
