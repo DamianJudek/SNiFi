@@ -117,3 +117,12 @@ body {
   font-weight: 700;
   src: url("../assets/fonts/Inter/static/Inter-Bold.ttf") format("truetype");
 }
+
+/* Declarations for Icomoon font */
+
+@font-face {
+  font-family: "icomoon";
+  font-display: swap;
+  src: url("../assets/fonts/icons/icomoon.ttf") format("truetype"),
+    url("../assets/fonts/icons/icomoon.woff") format("woff");
+}
