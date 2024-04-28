@@ -7,6 +7,7 @@ import {
   Row,
 } from "./Design.styled";
 import Button from "../../components/Button/Button";
+import Input from "../../components/Input/Input";
 
 type ComponentSectionProps = {
   title: string;
@@ -27,10 +28,15 @@ const Design = () => {
     <Container>
       <Header>Components page</Header>
       <ComponentSection title="Buttons">
-        <Button disabled>disabled</Button>
         <Button>default</Button>
+        <Button disabled>disabled</Button>
         <Button color="red">red</Button>
         <Button icon="plus">with icon</Button>
+      </ComponentSection>
+      <ComponentSection title="Inputs">
+        <Input type="text" />
+        <Input placeholder="placeholder" />
+        <Input error value="wrong value" />
       </ComponentSection>
     </Container>
   );
