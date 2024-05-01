@@ -7,7 +7,7 @@ from nmap import nmap, PortScannerTimeout
 from scapy.layers.l2 import getmacbyip
 
 
-def scan(addr_range: str, progress_callback=None, progress_interval=5):
+def discovery_scan(addr_range: str, progress_callback=None, progress_interval=5):
     # must be in this format: 192.168.0.0/24
     network = ipaddress.ip_network(addr_range, strict=False)
     hosts = network.hosts()
@@ -81,7 +81,7 @@ class DiscoveryError(Exception):
 
 
 if __name__ == "__main__":
-    result = scan("192.168.0.1/24", progress_callback=lambda x: print("Progress: ", x, "%", sep=""))
+    result = discovery_scan("192.168.0.1/24", progress_callback=lambda x: print("Progress: ", x, "%", sep=""))
     for host in result:
         print(host)
     print("Up hosts:", len(result))

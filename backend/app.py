@@ -1,15 +1,19 @@
-import json
+import logging
 import os
 import uuid
-from concurrent.futures import Executor, ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
 from flasgger import Swagger
-from flask import Flask, jsonify
+from flask import Flask
 from flask_restful import Api, Resource
-from pymongo import MongoClient
-from daemon.nmap_daemon import subnet_quickscan
 from nmap import PortScannerError
+from pymongo import MongoClient
+
+from daemon.discovery_daemon import discovery_scan
+from daemon.nmap_daemon import subnet_quickscan
+
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 api = Api(app)
@@ -24,6 +28,104 @@ client = MongoClient(mongo_url)
 db = client['snifi-db']
 scan_status_collection = db['scan_status']
 scan_result_collection = db['scan_result']
+
+
+class StartDiscovery(Resource):
+    def post(self):
+        """
+        Starts a discovery scan of the network. Returns ips with associated mac addresses (host will not show up if mac address is not found)
+        ---
+        responses:
+          200:
+            description: Scan started successfully
+            schema:
+              properties:
+                scanId:
+                  type: string
+                  format: uuid
+                  description: Started scan id
+        """
+
+        uid = str(uuid.uuid4())
+
+        logger.info(f'Starting scan with id: {uid}')
+
+        executor.submit(self.start_discovery, uid)
+
+        return {'scanId': uid}
+
+    def start_discovery(self, uid: str):
+        logger.info(f'Scan {uid} started')
+
+        scan_status_collection.insert_one(
+            {
+                'startTime': str(datetime.now()),
+                'scanId': uid,
+                'type': 'discovery',
+                'status': 'running',
+                'progress': 0.0
+            }
+        )
+
+        def indicate_progress(progress):
+            scan_status_collection.update_one(
+                {
+                    'scanId': uid
+                },
+                {
+                    '$set': {
+                        'progress': progress
+                    }
+                }
+            )
+
+        try:
+            scan_result = discovery_scan('192.168.0.1/24', progress_callback=indicate_progress)
+        except PortScannerError as e:
+            logger.exception(f'Scan {uid} failed')
+            scan_status_collection.update_one(
+                {
+                    'scanId': uid
+                },
+                {
+                    '$set': {
+                        'status': 'failed',
+                        'endTime': str(datetime.now()),
+                        'error': e.value
+                    },
+                    '$unset': {
+                        'progress': 0.0
+                    }
+                }
+            )
+            return
+
+        logger.debug(f'Scan result: {scan_result}')
+        scan_result_collection.insert_one(
+            {
+                'scanId': uid,
+                'type': 'discovery',
+                'uphosts': len(scan_result),
+                'result': scan_result
+            }
+        )
+
+        scan_status_collection.update_one(
+            {
+                'scanId': uid
+            },
+            {
+                '$set': {
+                    'status': 'completed',
+                    'endTime': str(datetime.now())
+                },
+                '$unset': {
+                    'progress': 0.0
+                }
+            }
+        )
+
+        logger.info(f'Scan {uid} completed')
 
 
 class StartScan(Resource):
@@ -44,14 +146,14 @@ class StartScan(Resource):
 
         uid = str(uuid.uuid4())
 
-        print(f'Starting scan with id: {uid}')
+        logger.info(f'Starting scan with id: {uid}')
 
         executor.submit(self.start_scan, uid)
 
         return {'scanId': uid}
 
     def start_scan(self, uid: str):
-        print(f'Scan {uid} started')
+        logger.info(f'Scan {uid} started')
 
         scan_status_collection.insert_one(
             {'startTime': str(datetime.now()), 'scanId': uid, 'status': 'running', 'endTime': None, 'meta': None}
@@ -60,11 +162,11 @@ class StartScan(Resource):
         try:
             scan_result = subnet_quickscan()
         except PortScannerError as e:
+            logger.exception(f'Scan {uid} failed')
             scan_status_collection.update_one(
                 {'scanId': uid},
                 {'$set': {'status': 'failed', 'endTime': str(datetime.now()), 'meta': e.value}}
             )
-
 
         scan_result_collection.insert_one({'scanId': uid, 'scanResult': scan_result})
 
@@ -73,7 +175,7 @@ class StartScan(Resource):
             {'$set': {'status': 'completed', 'endTime': str(datetime.now())}}
         )
 
-        print(f'Scan {uid} completed')
+        logger.info(f'Scan {uid} completed')
 
 
 class GetRunningScans(Resource):
@@ -139,8 +241,6 @@ class GetAllScans(Resource):
         """
 
         all_scans = list(scan_status_collection.find({}, {'_id': False}))
-        print(all_scans)
-        print(datetime.now())
         return all_scans
 
 
@@ -178,6 +278,8 @@ class DeleteAllScans(Resource):
         scan_result_collection.delete_many({})
         return {'status': 'success'}
 
+
+api.add_resource(StartDiscovery, '/start_discovery')
 
 api.add_resource(StartScan, '/start_scan')
 api.add_resource(GetRunningScans, '/running_scans')
