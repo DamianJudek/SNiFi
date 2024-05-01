@@ -12,5 +12,10 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-    ports:
-      - '5000:5000'
+#    ports:
+#      - '5000:5000'
+    network_mode: 'host'
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW

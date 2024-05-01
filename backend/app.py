@@ -9,6 +9,7 @@ from flask import Flask, jsonify
 from flask_restful import Api, Resource
 from pymongo import MongoClient
 from daemon.nmap_daemon import subnet_quickscan
+from nmap import PortScannerError
 
 app = Flask(__name__)
 api = Api(app)
@@ -17,6 +18,7 @@ swagger = Swagger(app)
 executor = ThreadPoolExecutor(max_workers=4)
 
 mongo_url = 'mongodb://mongodb:27017/' if os.environ.get('RUNNING_IN_DOCKER') else 'mongodb://localhost:27017/'
+mongo_url = 'mongodb://localhost:27017/'
 
 client = MongoClient(mongo_url)
 db = client['snifi-db']
@@ -52,10 +54,17 @@ class StartScan(Resource):
         print(f'Scan {uid} started')
 
         scan_status_collection.insert_one(
-            {'startTime': str(datetime.now()), 'scanId': uid, 'status': 'running', 'endTime': None}
+            {'startTime': str(datetime.now()), 'scanId': uid, 'status': 'running', 'endTime': None, 'meta': None}
         )
 
-        scan_result = subnet_quickscan()
+        try:
+            scan_result = subnet_quickscan()
+        except PortScannerError as e:
+            scan_status_collection.update_one(
+                {'scanId': uid},
+                {'$set': {'status': 'failed', 'endTime': str(datetime.now()), 'meta': e.value}}
+            )
+
 
         scan_result_collection.insert_one({'scanId': uid, 'scanResult': scan_result})
 
