@@ -10,6 +10,7 @@ from flask_restful import Api, Resource
 from nmap import PortScannerError
 from pymongo import MongoClient
 
+from daemon.device_daemon import update_devices_with_scan_result
 from daemon.discovery_daemon import discovery_scan
 from daemon.nmap_daemon import subnet_quickscan
 
@@ -21,14 +22,38 @@ swagger = Swagger(app)
 
 executor = ThreadPoolExecutor(max_workers=4)
 
-mongo_url = 'mongodb://mongodb:27017/' if os.environ.get('RUNNING_IN_DOCKER') else 'mongodb://localhost:27017/'
 mongo_url = 'mongodb://localhost:27017/'
 
 client = MongoClient(mongo_url)
 db = client['snifi-db']
 scan_status_collection = db['scan_status']
 scan_result_collection = db['scan_result']
+device_collection = db['devices']
 
+
+class Devices(Resource):
+    def get(self):
+        """
+        Gets a list of all devices found on the network with their ping response.
+        ---
+        responses:
+          200:
+            description: List of devices
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  ip:
+                    type: string
+                    format: ipv4
+                  mac:
+                    type: string
+                  vendor:
+                    type: string
+        """
+
+        return list(device_collection.find({}, {'_id': False}))
 
 class StartDiscovery(Resource):
     def post(self):
@@ -104,6 +129,7 @@ class StartDiscovery(Resource):
         scan_result_collection.insert_one(
             {
                 'scanId': uid,
+                'timestamp': str(datetime.now()),
                 'type': 'discovery',
                 'uphosts': len(scan_result),
                 'result': scan_result
@@ -126,6 +152,8 @@ class StartDiscovery(Resource):
         )
 
         logger.info(f'Scan {uid} completed')
+
+        update_devices_with_scan_result(db, uid)
 
 
 class StartScan(Resource):
@@ -279,7 +307,16 @@ class DeleteAllScans(Resource):
         return {'status': 'success'}
 
 
+class UpdateDevices(Resource):
+    def post(self, scan_id: str):
+        update_devices_with_scan_result(db, scan_id)
+        return {'status': 'success'}
+
+
+api.add_resource(Devices, '/devices')
 api.add_resource(StartDiscovery, '/start_discovery')
+
+api.add_resource(UpdateDevices, '/update_devices/<string:scan_id>')
 
 api.add_resource(StartScan, '/start_scan')
 api.add_resource(GetRunningScans, '/running_scans')

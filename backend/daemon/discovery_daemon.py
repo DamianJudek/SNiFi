@@ -66,6 +66,7 @@ def _nmap_scan_mac(ip: str):
         return None
     return result[0][0]
 
+
 def _get_vendor(mac: str):
     if mac is None:
         return None
@@ -75,6 +76,7 @@ def _get_vendor(mac: str):
         for line in f:
             if mac in line:
                 return line.split(" ")[1].replace("\n", "")
+
 
 class DiscoveryError(Exception):
     pass
