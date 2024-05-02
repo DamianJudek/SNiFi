@@ -12,9 +12,14 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-#    ports:
-#      - '5000:5000'
     network_mode: 'host'
+    command: 'gunicorn -b 0.0.0.0:5000 app:app --reload'
+    volumes:
+      - './:/srv'
+    healthcheck:
+      test: curl -f http://localhost:5000/health_check
+      interval: 1s
+      timeout: 10s
     privileged: true
     cap_add:
       - NET_ADMIN

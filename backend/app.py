@@ -10,6 +10,7 @@ from flask_restful import Api, Resource
 from nmap import PortScannerError
 from pymongo import MongoClient
 
+from util.iputil import get_default_gateway_ip
 from daemon.device_daemon import update_devices_with_scan_result
 from daemon.discovery_daemon import discovery_scan
 from daemon.nmap_daemon import subnet_quickscan
@@ -54,6 +55,7 @@ class Devices(Resource):
         """
 
         return list(device_collection.find({}, {'_id': False}))
+
 
 class StartDiscovery(Resource):
     def post(self):
@@ -105,7 +107,7 @@ class StartDiscovery(Resource):
             )
 
         try:
-            scan_result = discovery_scan('192.168.0.1/24', progress_callback=indicate_progress)
+            scan_result = discovery_scan(get_default_gateway_ip() + '/24', progress_callback=indicate_progress)
         except PortScannerError as e:
             logger.exception(f'Scan {uid} failed')
             scan_status_collection.update_one(
@@ -238,7 +240,7 @@ class GetRunningScans(Resource):
         return running_scans
 
 
-class GetAllScans(Resource):
+class Scans(Resource):
     def get(self):
         """
         Gets a list of all scans
@@ -272,40 +274,47 @@ class GetAllScans(Resource):
         return all_scans
 
 
-class GetScanResult(Resource):
+class ScanResult(Resource):
     def get(self, scan_id):
         """
         Gets the result of a scan
+        ---
+        parameters:
+          - name: scan_id
+            in: path
+            type: string
+            required: true
+            description: Scan id
+        responses:
+            200:
+                description: Scan result
+                schema:
+                type: object
+                properties:
+                    scanId:
+                        type: string
+                        format: uuid
+                        description: Running scan id
+                    timestamp:
+                        type: string
+                        format: date-time
+                    type:
+                        type: string
+                        enum: [discovery, nmap]
+                        example: discovery
+                    uphosts:
+                        type: integer
+                        example: 10
+                    result:
+
         """
 
         scan_result = scan_result_collection.find_one({'scanId': scan_id}, {'_id': False})
 
+        if scan_result is None:
+            return {'error': 'Scan not found'}, 404
+
         return scan_result
-
-
-class MockScan(Resource):
-    def get(self, id: str):
-        scan_status_collection.insert_one(
-            {'startTime': str(datetime.now()), 'scanId': id, 'status': 'running', 'endTime': None}
-        )
-        return {'status': 'success', 'scanId': id}
-
-
-class UpdateScan(Resource):
-    def post(self, id: str):
-        scan_status_collection.update_one(
-            {'scanId': id},
-            {'$set': {'status': 'completed', 'endTime': str(datetime.now())}}
-        )
-        return {'status': 'success'}
-
-
-class DeleteAllScans(Resource):
-    def delete(self):
-        scan_status_collection.delete_many({})
-        scan_result_collection.delete_many({})
-        return {'status': 'success'}
-
 
 class UpdateDevices(Resource):
     def post(self, scan_id: str):
@@ -313,18 +322,17 @@ class UpdateDevices(Resource):
         return {'status': 'success'}
 
 
+class HealthCheck(Resource):
+    def get(self):
+        return {'status': 'ok'}
+
+
 api.add_resource(Devices, '/devices')
 api.add_resource(StartDiscovery, '/start_discovery')
-
+api.add_resource(Scans, '/scans')
+api.add_resource(ScanResult, '/scan_result/<string:scan_id>')
 api.add_resource(UpdateDevices, '/update_devices/<string:scan_id>')
-
-api.add_resource(StartScan, '/start_scan')
-api.add_resource(GetRunningScans, '/running_scans')
-api.add_resource(GetAllScans, '/all_scans')
-api.add_resource(GetScanResult, '/scan_result/<string:scan_id>')
-api.add_resource(MockScan, '/mock_scan/<string:id>')
-api.add_resource(UpdateScan, '/update_scan/<string:id>')
-api.add_resource(DeleteAllScans, '/delete_all_scans')
+api.add_resource(HealthCheck, '/health_check')
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
