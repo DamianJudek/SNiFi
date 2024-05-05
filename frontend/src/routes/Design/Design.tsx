@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import {
   Container,
   Header,
@@ -8,6 +8,7 @@ import {
 } from "./Design.styled";
 import Button from "../../components/Button/Button";
 import Input from "../../components/Input/Input";
+import Select from "../../components/Select/Select";
 
 type ComponentSectionProps = {
   title: string;
@@ -24,6 +25,8 @@ const ComponentSection = ({ title, children }: ComponentSectionProps) => {
 };
 
 const Design = () => {
+  const [selectValue, setSelectValue] = useState<string>("");
+
   return (
     <Container>
       <Header>Components page</Header>
@@ -37,6 +40,26 @@ const Design = () => {
         <Input type="text" />
         <Input placeholder="placeholder" />
         <Input error value="wrong value" />
+      </ComponentSection>
+      <ComponentSection title="Select">
+        <Select
+          value={selectValue}
+          setValue={setSelectValue}
+          label="protocol"
+          options={[
+            { name: "http", value: "http" },
+            { name: "https", value: "https" },
+          ]}
+        />
+        <Select
+          value={selectValue}
+          setValue={setSelectValue}
+          label="protocol"
+          options={[
+            { name: "http", value: "http" },
+            { name: "https", value: "https" },
+          ]}
+        />
       </ComponentSection>
     </Container>
   );
