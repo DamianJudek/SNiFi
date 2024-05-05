@@ -42,7 +42,9 @@ export default function Select({
           onChange={handleChange}
         >
           {options.map(({ name, value }) => (
-            <StyledMenuItem value={value}>{name}</StyledMenuItem>
+            <StyledMenuItem key={name} value={value}>
+              {name}
+            </StyledMenuItem>
           ))}
         </StyledSelect>
       </StyledFormControl>

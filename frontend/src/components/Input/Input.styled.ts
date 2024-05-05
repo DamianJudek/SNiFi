@@ -20,7 +20,7 @@ export const StyledInput = styled(Input)<StyledInput>`
     outline: none;
     font-size: 16px;
     background-color: ${({ theme }) => theme.palette.black};
-    color: ${({ theme }) => theme.palette.lightGray};
+    color: ${({ theme }) => theme.palette.darkWhite};
     font-family: ${({ theme }) => theme.font.roboto};
     font-weight: ${({ theme }) => theme.weight.regular};
 
@@ -34,11 +34,11 @@ export const StyledInput = styled(Input)<StyledInput>`
   }
 
   &:hover {
-    border-color: ${({ theme }) => theme.palette.green};
+    border-color: ${({ theme }) => theme.palette.blue};
   }
 
   &.${inputClasses.focused} {
-    border-color: ${({ theme }) => theme.palette.green};
+    border-color: ${({ theme }) => theme.palette.blue};
   }
 
   &.${inputClasses.error} {

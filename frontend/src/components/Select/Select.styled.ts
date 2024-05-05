@@ -13,17 +13,17 @@ export const StyledBox = styled(Box)`
   }
 
   .Mui-focused .MuiOutlinedInput-notchedOutline {
-    border-color: ${({ theme }) => theme.palette.blueLighter} !important;
+    border-color: ${({ theme }) => theme.palette.blue} !important;
   }
 `;
 
 export const StyledSelect = styled(Select)<SelectProps>`
   &.MuiInputBase-root {
-    color: ${({ theme }) => theme.palette.lightGray};
+    color: ${({ theme }) => theme.palette.darkWhite};
   }
 
   .MuiSvgIcon-root {
-    color: ${({ theme }) => theme.palette.lightGray};
+    color: ${({ theme }) => theme.palette.darkWhite};
   }
 
   .MuiOutlinedInput-notchedOutline {
@@ -33,18 +33,18 @@ export const StyledSelect = styled(Select)<SelectProps>`
 
 export const StyledInputLabel = styled(InputLabel)`
   &.MuiFormLabel-root {
-    color: ${({ theme }) => theme.palette.lightGray};
+    color: ${({ theme }) => theme.palette.darkWhite};
   }
 
   &.Mui-focused.MuiFormLabel-root {
-    color: ${({ theme }) => theme.palette.blueLighter} !important;
+    color: ${({ theme }) => theme.palette.blue} !important;
   }
 `;
 
 export const StyledMenuItem = styled(MenuItem)`
   &.MuiButtonBase-root.MuiMenuItem-root {
     background-color: ${({ theme }) => theme.palette.darkGray};
-    color: ${({ theme }) => theme.palette.lightGray};
+    color: ${({ theme }) => theme.palette.darkWhite};
     border-radius: 25px;
     display: flex;
     align-items: center;

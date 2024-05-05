@@ -9,6 +9,7 @@ import {
 import Button from "../../components/Button/Button";
 import Input from "../../components/Input/Input";
 import Select from "../../components/Select/Select";
+import Switch from "../../components/Switch/Switch";
 
 type ComponentSectionProps = {
   title: string;
@@ -26,6 +27,7 @@ const ComponentSection = ({ title, children }: ComponentSectionProps) => {
 
 const Design = () => {
   const [selectValue, setSelectValue] = useState<string>("");
+  const [switchChecked, setSwitchChecked] = useState<boolean>(false);
 
   return (
     <Container>
@@ -59,6 +61,13 @@ const Design = () => {
             { name: "http", value: "http" },
             { name: "https", value: "https" },
           ]}
+        />
+      </ComponentSection>
+      <ComponentSection title="Switch">
+        <Switch
+          checked={switchChecked}
+          setChecked={setSwitchChecked}
+          label="enable"
         />
       </ComponentSection>
     </Container>
