@@ -5,7 +5,7 @@ export const H1 = css`
   font-weight: ${({ theme }) => theme.weight.bold};
   color: ${({ theme }) => theme.palette.white};
   font-size: 40px;
-  margin: 0;
+  margin: 0 0 20px 0;
 `;
 
 export const H2 = css`
@@ -30,4 +30,18 @@ export const Label = css`
   font-family: ${({ theme }) => theme.font.roboto};
   color: ${({ theme }) => theme.palette.white};
   font-size: 16px;
+`;
+
+export const LabelBold = css`
+  font-family: ${({ theme }) => theme.font.roboto};
+  color: ${({ theme }) => theme.palette.white};
+  font-weight: ${({ theme }) => theme.weight.bold};
+  font-size: 14px;
+`;
+
+export const SmallInfo = css`
+  font-family: ${({ theme }) => theme.font.roboto};
+  color: ${({ theme }) => theme.palette.darkWhite};
+  font-weight: ${({ theme }) => theme.weight.light};
+  font-size: 12px;
 `;
