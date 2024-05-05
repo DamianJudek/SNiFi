@@ -8,6 +8,9 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -123,6 +126,7 @@ body {
 @font-face {
   font-family: "icomoon";
   font-display: swap;
-  src: url("../assets/fonts/icons/icomoon.ttf") format("truetype"),
+  src:
+    url("../assets/fonts/icons/icomoon.ttf") format("truetype"),
     url("../assets/fonts/icons/icomoon.woff") format("woff");
 }

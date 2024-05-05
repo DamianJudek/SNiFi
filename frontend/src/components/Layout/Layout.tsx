@@ -7,8 +7,8 @@ type LayoutProps = {
 
 const Container = styled.div`
   background-color: ${({ theme }) => theme.palette.black};
-  width: 100%;
-  height: 100%;
+  min-width: 100vw;
+  min-height: 100vh;
 `;
 
 const Layout = ({ children }: LayoutProps) => {
