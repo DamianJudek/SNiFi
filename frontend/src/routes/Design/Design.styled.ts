@@ -1,16 +1,12 @@
 import styled from "styled-components";
+import { H2, H3 } from "../../styles/typography";
 
 export const Container = styled.div`
   background-color: ${({ theme }) => theme.palette.lightBlack};
 `;
 
-export const Header = styled.h1`
-  width: 100%;
-  font-family: ${({ theme }) => theme.font.inter};
-  font-size: 40px;
-  text-align: center;
-  color: ${({ theme }) => theme.palette.darkWhite};
-  margin: 0 0 20px 0;
+export const Header = styled.h2`
+  ${H2};
 `;
 
 export const Section = styled.div`
@@ -22,12 +18,14 @@ export const Section = styled.div`
   border-bottom: 2px dashed ${({ theme }) => theme.palette.gray};
 `;
 
-export const SectionHeader = styled.h2`
-  font-family: ${({ theme }) => theme.font.roboto};
-  color: ${({ theme }) => theme.palette.darkWhite};
+export const SectionHeader = styled.h3`
+  ${H3};
 `;
 
 export const Row = styled.div`
   display: flex;
   flex-direction: row;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
 `;
