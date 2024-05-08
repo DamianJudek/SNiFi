@@ -1,9 +1,7 @@
 import styled from "styled-components";
 import { H2, H3 } from "../../styles/typography";
 
-export const Container = styled.div`
-  background-color: ${({ theme }) => theme.palette.lightBlack};
-`;
+export const Container = styled.div``;
 
 export const Header = styled.h2`
   ${H2};

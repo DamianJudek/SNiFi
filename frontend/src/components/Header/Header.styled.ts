@@ -17,6 +17,5 @@ export const Logo = styled.i`
 
 export const Heading = styled.h1`
   ${H1};
-  margin-left: ${({ theme }) => theme.spacing.medium};
-  margin-right: auto;
+  margin: ${({ theme }) => ` 0  auto 0 ${theme.spacing.medium}`};
 `;

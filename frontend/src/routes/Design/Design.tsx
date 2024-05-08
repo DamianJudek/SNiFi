@@ -10,6 +10,8 @@ import Button from "../../components/Button/Button";
 import Input from "../../components/Input/Input";
 import Select from "../../components/Select/Select";
 import Switch from "../../components/Switch/Switch";
+import ConnectedDevices from "../../components/ConnectedDevices/ConnectedDevices";
+import IconBadge from "../../components/IconBadge/IconBadge";
 
 type ComponentSectionProps = {
   title: string;
@@ -69,6 +71,16 @@ const Design = () => {
           setChecked={setSwitchChecked}
           label="enable"
         />
+      </ComponentSection>
+
+      <ComponentSection title="Connected Devices">
+        <ConnectedDevices />
+      </ComponentSection>
+
+      <ComponentSection title="Icon badge">
+        <IconBadge iconName="star" color="gold">
+          New
+        </IconBadge>
       </ComponentSection>
     </Container>
   );

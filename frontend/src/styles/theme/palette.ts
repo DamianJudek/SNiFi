@@ -13,9 +13,10 @@ export const palette = {
   redDarker: "#8a0000",
   redLighter: "#ff0a0a",
   green: "#00FFAB",
+  gold: "#ffdd29",
 } as const;
 
-type PaletteKeys = keyof typeof palette;
+export type PaletteKeys = keyof typeof palette;
 export type Palette = Record<PaletteKeys, string>;
 
 export default palette;
