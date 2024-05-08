@@ -1,42 +1,24 @@
 export type DeviceStatus = "up" | "down" | "blocked";
 
-export type DeviceApiResponse = {
-  hostnames: [
-    {
-      name: string;
-      type: string;
-    },
-  ];
-  addresses: {
-    ipv4: string;
-  };
-  vendor: Record<string, unknown>;
-  status: {
-    state: DeviceStatus;
-    reason: string;
-  };
-};
+export interface DeviceApiResponse {
+  mac: string;
+  name: string | null;
+  ip: string;
+  isNew: boolean;
+  isBlocked: boolean;
+  available: boolean;
+  discoveredAt: string;
+  availability: Availability;
+}
 
-export type ConnectedDevicesApiResponse = {
-  scanId: string;
-  scanResult: {
-    nmap: {
-      command_line: string;
-      scaninfo: Record<string, unknown>;
-      scanstats: {
-        timestr: string;
-        elapsed: string;
-        uphosts: string;
-        downhosts: string;
-        totalhosts: string;
-      };
-    };
-    scan: Record<string, DeviceApiResponse>;
-  };
-};
+export type Availability = {
+  timestamp: string;
+  available: boolean;
+}[];
 
-export type DeviceProps = {
-  status: DeviceStatus;
-  hostname: string;
-  address: string;
-};
+export type ConnectedDevicesApiResponse = DeviceApiResponse[];
+
+export interface DeviceProps extends DeviceApiResponse {
+  handleVerify: (mac: string, state: boolean) => void;
+  handleBlock: (mac: string, state: boolean) => void;
+}
