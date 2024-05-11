@@ -1,7 +1,7 @@
 export const weight = {
-  light: "200",
-  regular: "300",
-  medium: "400",
+  light: "300",
+  regular: "400",
+  medium: "500",
   bold: "700",
 };
 
