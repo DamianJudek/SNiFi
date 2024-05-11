@@ -6,7 +6,7 @@ from datetime import datetime
 
 from flasgger import Swagger
 from flask import Flask
-from flask_restful import Api, Resource
+from flask_restful import Api, Resource, reqparse
 from nmap import PortScannerError
 from pymongo import MongoClient
 
@@ -316,10 +316,26 @@ class ScanResult(Resource):
 
         return scan_result
 
-class UpdateDevices(Resource):
-    def post(self, scan_id: str):
-        update_devices_with_scan_result(db, scan_id)
-        return {'status': 'success'}
+
+class UpdateDevice(Resource):
+    def put(self, mac_addr):
+        parser = reqparse.RequestParser()
+        parser.add_argument('name', type=str, required=False, help='Name of the device', location='args')
+        parser.add_argument('isNew', type=lambda x: x.lower() == 'true', required=False,
+                            help='Whether the device is new', location='args')
+        args = parser.parse_args()
+
+        if args["name"] and len(args["name"]) > 30:
+            return {'status': 'error', 'message': 'Name too long'}, 422
+
+        result = device_collection.update_one({'mac': mac_addr}, {'$set': args})
+
+        logger.error(result)
+
+        if result.matched_count == 0:
+            return {'status': 'error', 'message': 'Device not found'}, 404
+
+        return {'status': 'ok'}
 
 
 class HealthCheck(Resource):
@@ -331,7 +347,8 @@ api.add_resource(Devices, '/devices')
 api.add_resource(StartDiscovery, '/start_discovery')
 api.add_resource(Scans, '/scans')
 api.add_resource(ScanResult, '/scan_result/<string:scan_id>')
-api.add_resource(UpdateDevices, '/update_devices/<string:scan_id>')
+api.add_resource(UpdateDevice, '/device/<string:mac_addr>/update')
+
 api.add_resource(HealthCheck, '/health_check')
 
 if __name__ == "__main__":

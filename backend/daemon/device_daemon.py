@@ -20,20 +20,20 @@ def update_devices_with_scan_result(db: Database, scanId: str):
 
     for device in scan['result']:
         if device['mac'] not in previous_devices_macs:
-            new_device_detected(devices_collection, device['ip'], device['mac'], scan['timestamp'])
+            new_device_detected(devices_collection, device['ip'], device['mac'], scanId, scan['timestamp'])
         else:
-            update_existing_device(devices_collection, device['ip'], device['mac'], scan['timestamp'])
+            update_existing_device(devices_collection, device['ip'], device['mac'], scanId, scan['timestamp'])
 
     current_devices_macs = [device['mac'] for device in scan['result']]
     for device in previous_devices:
         if device['mac'] not in current_devices_macs:
-            update_existing_device(devices_collection, device['ip'], device['mac'], scan['timestamp'], available=False)
+            update_existing_device(devices_collection, device['ip'], device['mac'], scanId, scan['timestamp'], available=False)
             logger.debug(f'Device {device["mac"]} not found in scan {scanId}, updating availability')
 
     logger.info('Devices collection updated')
 
 
-def new_device_detected(devices_collection: Collection, ip: str, mac: str, timestamp: str):
+def new_device_detected(devices_collection: Collection, ip: str, mac: str, scanId: str, timestamp: str):
     logger.info(f'New device detected: {ip}, {mac}')
 
     devices_collection.insert_one(
@@ -41,10 +41,12 @@ def new_device_detected(devices_collection: Collection, ip: str, mac: str, times
             'mac': mac,
             'name': None,
             'ip': ip,
-            'new': True,
+            'isNew': True,
+            'isBlocked': False,
             'discoveredAt': timestamp,
             'availability': [
                 {
+                    'scanId': scanId,
                     'timestamp': timestamp,
                     'available': True
                 }
@@ -53,7 +55,7 @@ def new_device_detected(devices_collection: Collection, ip: str, mac: str, times
     )
 
 
-def update_existing_device(devices_collection: Collection, ip: str, mac: str, timestamp: str, available: bool = True):
+def update_existing_device(devices_collection: Collection, ip: str, mac: str, scanId: str, timestamp: str, available: bool = True):
     devices_collection.update_one(
         {'mac': mac},
         {
@@ -64,6 +66,7 @@ def update_existing_device(devices_collection: Collection, ip: str, mac: str, ti
                 'availability': {
                     '$each': [
                         {
+                            'scanId': scanId,
                             'timestamp': timestamp,
                             'available': available
                         }
