@@ -5,7 +5,7 @@ export const spacing = {
   large: "35px",
 };
 
-type SpacingKeys = keyof typeof spacing;
+export type SpacingKeys = keyof typeof spacing;
 export type Spacing = Record<SpacingKeys, string>;
 
 export default spacing;
