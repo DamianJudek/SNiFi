@@ -7,7 +7,7 @@ type StyledInput = {
 
 export const StyledInput = styled(Input)<StyledInput>`
   padding: ${({ theme }) => `${theme.spacing.tiny} ${theme.spacing.medium}`};
-  margin: 0 ${({ theme }) => theme.spacing.tiny};
+  margin: ${({ theme }) => theme.spacing.tiny};
   transition: color 150ms ease;
   cursor: pointer;
   border-radius: 25px;

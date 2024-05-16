@@ -9,6 +9,7 @@ const Container = styled.div`
   background-color: ${({ theme }) => theme.palette.black};
   min-width: 100vw;
   min-height: 100vh;
+  padding: ${({ theme }) => theme.spacing.medium};
 `;
 
 const Layout = ({ children }: LayoutProps) => {
