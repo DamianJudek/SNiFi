@@ -26,10 +26,20 @@ export const H3 = css`
   margin: 0 0 20px 0;
 `;
 
+export const H4 = css`
+  width: 100%;
+  font-family: ${({ theme }) => theme.font.inter};
+  color: ${({ theme }) => theme.palette.darkWhite};
+  font-size: 20px;
+  text-align: left;
+  margin: 0 0 15px 0;
+`;
+
 export const Label = css`
   font-family: ${({ theme }) => theme.font.roboto};
   color: ${({ theme }) => theme.palette.white};
   font-size: 16px;
+  margin: 0;
 `;
 
 export const LabelBold = css`
@@ -37,6 +47,7 @@ export const LabelBold = css`
   color: ${({ theme }) => theme.palette.white};
   font-weight: ${({ theme }) => theme.weight.bold};
   font-size: 14px;
+  margin: 0;
 `;
 
 export const SmallInfo = css`
@@ -44,4 +55,21 @@ export const SmallInfo = css`
   color: ${({ theme }) => theme.palette.darkWhite};
   font-weight: ${({ theme }) => theme.weight.light};
   font-size: 12px;
+  margin: 0;
+`;
+
+export const Paragraph = css`
+  font-family: ${({ theme }) => theme.font.roboto};
+  color: ${({ theme }) => theme.palette.white};
+  font-weight: ${({ theme }) => theme.weight.regular};
+  font-size: 14px;
+  margin: 0 0 15px 0;
+`;
+
+export const ParagraphSmall = css`
+  font-family: ${({ theme }) => theme.font.roboto};
+  color: ${({ theme }) => theme.palette.darkWhite};
+  font-weight: ${({ theme }) => theme.weight.light};
+  font-size: 14px;
+  margin: 0 0 15px 0;
 `;

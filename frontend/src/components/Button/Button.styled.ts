@@ -13,7 +13,7 @@ export const StyledButton = styled(Button)<StyledButtonProps>(
     font-family: ${theme.font.roboto};
     font-weight: ${theme.weight.medium};
     padding: ${theme.spacing.small} ${theme.spacing.medium}; 
-    margin: 0 ${theme.spacing.tiny}; 
+    margin: ${theme.spacing.tiny}; 
     transition: all 150ms ease;
     cursor: pointer;
     border-radius: 25px;
@@ -35,6 +35,7 @@ export const StyledButton = styled(Button)<StyledButtonProps>(
   
     &.${buttonClasses.disabled} {
       background-color: ${theme.palette[`${$color}Lighter`]};
+      opacity:0.6;
     }
 
     & i {

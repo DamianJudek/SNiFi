@@ -18,7 +18,6 @@ const AvailabilityBar = ({ availability, isBlocked }: AvailabilityBarProps) => {
       >
         <Stick
           role="button"
-          aria-
           $gray={!available}
           $green={available}
           $red={isBlocked && !available}
