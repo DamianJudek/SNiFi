@@ -2,11 +2,28 @@ version: '3'
 
 services:
   mongodb:
-    image: 'mongo:latest'
+    image: 'mongo:4.4.18'
     ports:
       - '27017:27017'
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/test --quiet
+      interval: 1s
+      timeout: 1s
+      retries: 1000
+  adguard:
+    image: 'adguard/adguardhome:latest'
+    ports:
+      - '53:53/tcp'
+      - '53:53/udp'
+      - '8080:80'
+    volumes:
+      - './adg/workdir:/opt/adguardhome/work'
+      - './adg/confdir:/opt/adguardhome/conf'
+    healthcheck:
+      test: [ "CMD", "wget", "http://127.0.0.1:80", "-qO", "/dev/null" ]
+      interval: 1s
+      timeout: 1s
+      retries: 1000
   backend:
     build: 'backend'
     depends_on:
@@ -19,7 +36,8 @@ services:
     healthcheck:
       test: curl -f http://localhost:5000/health_check
       interval: 1s
-      timeout: 10s
+      timeout: 1s
+      retries: 1000
     privileged: true
     cap_add:
       - NET_ADMIN
@@ -27,12 +45,13 @@ services:
   frontend:
     build: 'frontend'
     ports:
-      - '8000:8000'
+      - '80:8000'
     volumes:
       - './frontend/:/srv'
       - '/srv/node_modules'
       - '/srv/dist'
-#    healthcheck:
-#      test: curl -f http://localhost:5000/health_check
-#      interval: 1s
-#      timeout: 10s
+    healthcheck:
+      test: curl -f http://0.0.0.0:8000/
+      interval: 1s
+      timeout: 1s
+      retries: 1000
