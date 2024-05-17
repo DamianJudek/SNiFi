@@ -15,6 +15,7 @@ services:
     ports:
       - '53:53/tcp'
       - '53:53/udp'
+      - '8080:80'
     volumes:
       - './adg/workdir:/opt/adguardhome/work'
       - './adg/confdir:/opt/adguardhome/conf'

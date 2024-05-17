@@ -1,9 +1,11 @@
+import asyncio
 import logging
 import os
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
+from adguardhome import AdGuardHome as Adg
 from flasgger import Swagger
 from flask import Flask
 from flask_restful import Api, Resource, reqparse
@@ -19,7 +21,18 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 api = Api(app)
-swagger = Swagger(app)
+swagger = Swagger(app, template={
+    "info": {
+        "title": "SNiFi API",
+        "version": "1.0"
+    },
+    "tags": [
+        {"name": "devices", "description": "Discovered devices information"},
+        {"name": "scans", "description": "Network scan management"},
+        {"name": "dns", "description": "Dns proxy management"},
+        {"name": "other", "description": "Miscellaneous"}
+    ],
+})
 
 executor = ThreadPoolExecutor(max_workers=4)
 
@@ -35,23 +48,13 @@ device_collection = db['devices']
 class Devices(Resource):
     def get(self):
         """
-        Gets a list of all devices found on the network with their ping response.
+        Gets a list of all devices found on the network.
         ---
+        tags:
+          - devices
         responses:
-          200:
-            description: List of devices
-            schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  ip:
-                    type: string
-                    format: ipv4
-                  mac:
-                    type: string
-                  vendor:
-                    type: string
+            200:
+                description: List of devices
         """
 
         return list(device_collection.find({}, {'_id': False}))
@@ -62,15 +65,11 @@ class StartDiscovery(Resource):
         """
         Starts a discovery scan of the network. Returns ips with associated mac addresses (host will not show up if mac address is not found)
         ---
+        tags:
+          - scans
         responses:
           200:
             description: Scan started successfully
-            schema:
-              properties:
-                scanId:
-                  type: string
-                  format: uuid
-                  description: Started scan id
         """
 
         uid = str(uuid.uuid4())
@@ -158,116 +157,16 @@ class StartDiscovery(Resource):
         update_devices_with_scan_result(db, uid)
 
 
-class StartScan(Resource):
-    def post(self):
-        """
-        Starts a nmap scan of the network
-        ---
-        responses:
-          200:
-            description: Scan started successfully
-            schema:
-              properties:
-                scanId:
-                  type: string
-                  format: uuid
-                  description: Started scan id
-        """
-
-        uid = str(uuid.uuid4())
-
-        logger.info(f'Starting scan with id: {uid}')
-
-        executor.submit(self.start_scan, uid)
-
-        return {'scanId': uid}
-
-    def start_scan(self, uid: str):
-        logger.info(f'Scan {uid} started')
-
-        scan_status_collection.insert_one(
-            {'startTime': str(datetime.now()), 'scanId': uid, 'status': 'running', 'endTime': None, 'meta': None}
-        )
-
-        try:
-            scan_result = subnet_quickscan()
-        except PortScannerError as e:
-            logger.exception(f'Scan {uid} failed')
-            scan_status_collection.update_one(
-                {'scanId': uid},
-                {'$set': {'status': 'failed', 'endTime': str(datetime.now()), 'meta': e.value}}
-            )
-
-        scan_result_collection.insert_one({'scanId': uid, 'scanResult': scan_result})
-
-        scan_status_collection.update_one(
-            {'scanId': uid},
-            {'$set': {'status': 'completed', 'endTime': str(datetime.now())}}
-        )
-
-        logger.info(f'Scan {uid} completed')
-
-
-class GetRunningScans(Resource):
-    def get(self):
-        """
-        Gets a list of all running scans
-        ---
-        responses:
-          200:
-            description: List of running scans
-            schema:
-              properties:
-                scanId:
-                  type: string
-                  format: uuid
-                  description: Running scan id
-                startTime:
-                  type: string
-                  format: date-time
-                status:
-                  type: string
-                  enum: [running, completed, failed]
-                  example: running
-                endTime:
-                  type: string
-                  format: date-time
-                  nullable: true
-                  example: null
-        """
-
-        running_scans = list(scan_status_collection.find({'status': 'running'}, {'_id': False}))
-        return running_scans
-
-
 class Scans(Resource):
     def get(self):
         """
         Gets a list of all scans
         ---
+        tags:
+          - scans
         responses:
           200:
             description: List of all scans
-            schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  scanId:
-                    type: string
-                    format: uuid
-                    description: Running scan id
-                  startTime:
-                    type: string
-                    format: date-time
-                  status:
-                    type: string
-                    enum: [running, completed, failed]
-                    example: completed
-                  endTime:
-                    type: string
-                    format: date-time
-                    nullable: true
         """
 
         all_scans = list(scan_status_collection.find({}, {'_id': False}))
@@ -279,6 +178,8 @@ class ScanResult(Resource):
         """
         Gets the result of a scan
         ---
+        tags:
+          - scans
         parameters:
           - name: scan_id
             in: path
@@ -288,25 +189,8 @@ class ScanResult(Resource):
         responses:
             200:
                 description: Scan result
-                schema:
-                type: object
-                properties:
-                    scanId:
-                        type: string
-                        format: uuid
-                        description: Running scan id
-                    timestamp:
-                        type: string
-                        format: date-time
-                    type:
-                        type: string
-                        enum: [discovery, nmap]
-                        example: discovery
-                    uphosts:
-                        type: integer
-                        example: 10
-                    result:
-
+            404:
+                description: Scan not found
         """
 
         scan_result = scan_result_collection.find_one({'scanId': scan_id}, {'_id': False})
@@ -319,6 +203,36 @@ class ScanResult(Resource):
 
 class UpdateDevice(Resource):
     def put(self, mac_addr):
+        """
+        Updates the device with the given mac address
+        ---
+        tags:
+          - devices
+        parameters:
+          - name: mac_addr
+            in: path
+            type: string
+            required: true
+            description: MAC address of the device
+          - name: name
+            in: query
+            type: string
+            required: false
+            description: Name of the device
+          - name: isNew
+            in: query
+            type: boolean
+            required: false
+            description: Whether the device is new
+        responses:
+            200:
+                description: Device updated successfully
+            404:
+                description: Device not found
+            422:
+                description: Name too long
+        """
+
         parser = reqparse.RequestParser()
         parser.add_argument('name', type=str, required=False, help='Name of the device', location='args')
         parser.add_argument('isNew', type=lambda x: x.lower() == 'true', required=False,
@@ -338,8 +252,75 @@ class UpdateDevice(Resource):
         return {'status': 'ok'}
 
 
+class Protection(Resource):
+    def post(self):
+        """
+        Enables or disables the DNS protection
+        ---
+        tags:
+          - dns
+        parameters:
+          - name: enable
+            in: query
+            type: string
+            required: true
+        responses:
+            200:
+                description: Protection updated successfully
+        """
+
+        parser = reqparse.RequestParser()
+        parser.add_argument('enable', type=lambda x: x.lower() == 'true', required=True, help='Enable or disable protection',
+                            location='args')
+        args = parser.parse_args()
+
+        adg = Adg('localhost', port=8080, username='admin', password='password')
+
+        if args['enable']:
+            asyncio.run(adg.enable_protection())
+        else:
+            asyncio.run(adg.disable_protection())
+
+        return {'status': 'ok'}
+
+
+class DnsStats(Resource):
+    def get(self):
+        """
+        Gets the DNS statistics
+        ---
+        tags:
+          - dns
+        responses:
+            200:
+                description: dns proxy stats
+        """
+
+        return asyncio.run(self.getStats())
+
+    async def getStats(self):
+        adg = Adg('localhost', port=8080, username='admin', password='password')
+        stats = adg.stats
+        summary = {
+            "stats_period": await stats.period(),
+            "dns_queries": await stats.dns_queries(),
+            "blocked_percentage": await stats.blocked_percentage(),
+            "active_rules": await adg.filtering.rules_count(allowlist=False)
+        }
+        return summary
+
+
 class HealthCheck(Resource):
     def get(self):
+        """
+        Health check endpoint
+        ---
+        tags:
+          - other
+        responses:
+            200:
+                description: Health check response
+        """
         return {'status': 'ok'}
 
 
@@ -348,6 +329,9 @@ api.add_resource(StartDiscovery, '/start_discovery')
 api.add_resource(Scans, '/scans')
 api.add_resource(ScanResult, '/scan_result/<string:scan_id>')
 api.add_resource(UpdateDevice, '/device/<string:mac_addr>/update')
+
+api.add_resource(Protection, '/protection')
+api.add_resource(DnsStats, '/dns_stats')
 
 api.add_resource(HealthCheck, '/health_check')
 
