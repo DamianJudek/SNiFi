@@ -12,6 +12,7 @@ import Select from "../../components/Select/Select";
 import Switch from "../../components/Switch/Switch";
 import ConnectedDevices from "../../components/ConnectedDevices/ConnectedDevices";
 import IconBadge from "../../components/IconBadge/IconBadge";
+import ManualScan from "../../components/ManualScan/ManualScan";
 
 type ComponentSectionProps = {
   title: string;
@@ -81,6 +82,10 @@ const Design = () => {
         <IconBadge iconName="star" color="gold">
           New
         </IconBadge>
+      </ComponentSection>
+
+      <ComponentSection title="Manual scan">
+        <ManualScan />
       </ComponentSection>
     </Container>
   );
