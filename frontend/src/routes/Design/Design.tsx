@@ -13,6 +13,7 @@ import Switch from "../../components/Switch/Switch";
 import ConnectedDevices from "../../components/ConnectedDevices/ConnectedDevices";
 import IconBadge from "../../components/IconBadge/IconBadge";
 import ManualScan from "../../components/ManualScan/ManualScan";
+import { CircularLoader, LinearLoader } from "../../components/Loader/Loader";
 
 type ComponentSectionProps = {
   title: string;
@@ -86,6 +87,11 @@ const Design = () => {
 
       <ComponentSection title="Manual scan">
         <ManualScan />
+      </ComponentSection>
+
+      <ComponentSection title="Loader">
+        <CircularLoader />
+        <LinearLoader progress={"20.5"} />
       </ComponentSection>
     </Container>
   );

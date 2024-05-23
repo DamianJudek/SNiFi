@@ -10,6 +10,7 @@ import {
   HeaderLabel,
   Content,
 } from "./ConnectedDevices.styled";
+import CircularLoader from "../Loader/Loader";
 // import { devicesApiMockedResponse } from "../apiMocks";
 
 const ConnectedDevices = () => {
@@ -94,7 +95,7 @@ const ConnectedDevices = () => {
         <HeaderLabel>Allowed</HeaderLabel>
       </HeaderRow>
       <Divider />
-      <Content>{devices}</Content>
+      <Content>{devices.length === 0 ? <CircularLoader /> : devices}</Content>
     </Contaienr>
   );
 };
