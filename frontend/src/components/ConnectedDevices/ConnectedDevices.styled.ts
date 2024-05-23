@@ -1,7 +1,19 @@
 import styled from "styled-components";
-import { H2, LabelBold, SmallInfo } from "../../styles/typography";
+import { H2, LabelBold } from "../../styles/typography";
 
-// ConnectedDevices part
+export const HeaderRow = styled.div`
+  display: grid;
+  grid-template-columns: 1fr repeat(2, 3fr) repeat(2, 1.5fr);
+  grid-column-gap: 0px;
+  grid-row-gap: 0px;
+  padding: 20px 20px 20px 50px;
+  background-color: ${({ theme }) => theme.palette.lightBlack};
+`;
+
+export const HeaderLabel = styled.span`
+  ${LabelBold}
+  text-align: center;
+`;
 
 export const Contaienr = styled.section`
   display: flex;
@@ -32,67 +44,9 @@ export const Content = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 350px;
+  max-height: 600px;
+  overflow-y: auto;
   border-radius: 5px;
   background-color: ${({ theme }) => theme.palette.lightBlack};
   padding: 20px 20px 20px 50px;
-`;
-
-// DEVICE PART
-
-export const HeaderRow = styled.div`
-  display: grid;
-  grid-template-columns: 1fr repeat(2, 3fr) repeat(2, 1.5fr);
-  grid-column-gap: 0px;
-  grid-row-gap: 0px;
-  padding: 20px 20px 20px 50px;
-  background-color: ${({ theme }) => theme.palette.lightBlack};
-`;
-
-export const HeaderLabel = styled.span`
-  ${LabelBold}
-  text-align: center;
-`;
-
-export const Row = styled.div`
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr repeat(2, 3fr) repeat(2, 1.5fr);
-  grid-column-gap: 0px;
-  grid-row-gap: 0px;
-  width: 100%;
-  margin: ${({ theme }) => `${theme.spacing.small} 0`};
-`;
-
-export const BadgeWrapper = styled.div``;
-
-export const Info = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  margin-left: ${({ theme }) => theme.spacing.small};
-`;
-
-export const Name = styled.div`
-  ${LabelBold};
-`;
-
-export const Ip = styled.div`
-  ${SmallInfo}
-`;
-
-export const AvailabilityWrapper = styled.div``;
-
-export const NewBadgeWrapper = styled.div`
-  position: absolute;
-  bottom: 100%;
-  left: -40px;
-  opacity: 0.5;
-`;
-
-export const ButtonWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: o auto;
 `;
