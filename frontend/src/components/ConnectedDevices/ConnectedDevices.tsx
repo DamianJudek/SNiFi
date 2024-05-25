@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getDevices, updateDevice } from "../../api";
+import useAlert from "../../hooks/useAlert";
 import Divider from "../Divider/Divider";
 import Device from "../Device/Device";
 import {
@@ -15,6 +16,7 @@ import CircularLoader from "../Loader/Loader";
 
 const ConnectedDevices = () => {
   const [detectedDevices, setDetectedDevices] = useState([]);
+  const [showAlert, Alert] = useAlert({});
 
   const handleVerify = (mac: string, isNew: boolean) => {
     updateDevice(mac, isNew)
@@ -25,7 +27,10 @@ const ConnectedDevices = () => {
 
         throw res.text;
       })
-      .catch((e) => console.log("error updating device", e));
+      .catch((e) => {
+        console.log("error updating device", e);
+        showAlert("Error marking device as verified", "error");
+      });
   };
 
   const handleBlock = (mac: string, isBlocked: boolean) => {
@@ -37,7 +42,10 @@ const ConnectedDevices = () => {
 
         throw res.text;
       })
-      .catch((e) => console.log("error updating device", e));
+      .catch((e) => {
+        console.log("error updating device", e);
+        showAlert("Error blocking device", "error");
+      });
   };
 
   const refreshDevices = () => {
@@ -50,7 +58,10 @@ const ConnectedDevices = () => {
         setDetectedDevices(resp);
       })
 
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        console.error(err);
+        showAlert("Error fetching devices list", "error");
+      });
   };
 
   const devices = detectedDevices.map(
@@ -96,6 +107,7 @@ const ConnectedDevices = () => {
       </HeaderRow>
       <Divider />
       <Content>{devices.length === 0 ? <CircularLoader /> : devices}</Content>
+      {Alert}
     </Contaienr>
   );
 };
