@@ -1,5 +1,5 @@
 import { ConnectedDevicesApiResponse } from "./ConnectedDevices/ConnectedDevices.interface";
-const router = "192.168.178.1";
+
 export const scanResultApiResponse = {
   scanId: "e97557c0-0016-4177-a021-9a9101385f73",
   timestamp: "2024-05-19 19:07:43.185261",
