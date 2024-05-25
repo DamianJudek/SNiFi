@@ -324,6 +324,20 @@ class HealthCheck(Resource):
         return {'status': 'ok'}
 
 
+class Debug(Resource):
+    def get(self):
+        """
+        Debug endpoint
+        ---
+        tags:
+          - other
+        responses:
+            200:
+                description: Debug response
+        """
+        update_devices_with_scan_result(db, 'c40407a2-9fe5-48e0-bd2f-af7d02ea76fd')
+        return {'status': 'ok'}
+
 api.add_resource(Devices, '/devices')
 api.add_resource(StartDiscovery, '/start_discovery')
 api.add_resource(Scans, '/scans')
@@ -332,6 +346,8 @@ api.add_resource(UpdateDevice, '/device/<string:mac_addr>/update')
 
 api.add_resource(Protection, '/protection')
 api.add_resource(DnsStats, '/dns_stats')
+
+api.add_resource(Debug, '/debug')
 
 api.add_resource(HealthCheck, '/health_check')
 

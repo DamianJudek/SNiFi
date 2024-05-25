@@ -13,22 +13,22 @@ def update_devices_with_scan_result(db: Database, scanId: str):
     logger.info(f'Updating devices collection after {scanId} scan result')
 
     devices_collection = db['devices']
-    previous_devices = devices_collection.find({})
+    previous_devices = [device for device in devices_collection.find({})]
     previous_devices_macs = [device['mac'] for device in previous_devices]
 
     scan = db['scan_result'].find_one({'scanId': scanId}, {'_id': False})
-
-    for device in scan['result']:
-        if device['mac'] not in previous_devices_macs:
-            new_device_detected(devices_collection, device['ip'], device['mac'], scanId, scan['timestamp'])
-        else:
-            update_existing_device(devices_collection, device['ip'], device['mac'], scanId, scan['timestamp'])
 
     current_devices_macs = [device['mac'] for device in scan['result']]
     for device in previous_devices:
         if device['mac'] not in current_devices_macs:
             update_existing_device(devices_collection, device['ip'], device['mac'], scanId, scan['timestamp'], available=False)
             logger.debug(f'Device {device["mac"]} not found in scan {scanId}, updating availability')
+
+    for device in scan['result']:
+        if device['mac'] not in previous_devices_macs:
+            new_device_detected(devices_collection, device['ip'], device['mac'], scanId, scan['timestamp'])
+        else:
+            update_existing_device(devices_collection, device['ip'], device['mac'], scanId, scan['timestamp'])
 
     logger.info('Devices collection updated')
 
