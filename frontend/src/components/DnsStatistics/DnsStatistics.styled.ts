@@ -25,8 +25,7 @@ export const Field = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: ${({ theme }) => theme.spacing.small}
-    ${({ theme }) => theme.spacing.medium};
+  padding: ${({ theme }) => `${theme.spacing.small} ${theme.spacing.medium}`};
 `;
 
 export const Name = styled.span`
