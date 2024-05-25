@@ -28,7 +28,7 @@ export const StyledOptions = styled(Tabs)`
   background-color: ${({ theme }) => theme.palette.lightBlack};
 
   & .MuiTabs-indicator {
-    background-color: ${({ theme }) => theme.palette.blueDarker};
+    background-color: ${({ theme }) => theme.palette.darkBlue};
   }
 `;
 

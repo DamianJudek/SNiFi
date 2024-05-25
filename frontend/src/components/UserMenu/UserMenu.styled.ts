@@ -9,7 +9,7 @@ export const StyledMenuItem = styled(MenuItem)`
   color: ${({ theme }) => theme.palette.white} !important;
 
   &:hover {
-    background-color: ${({ theme }) => theme.palette.blueDarker} !important;
+    background-color: ${({ theme }) => theme.palette.darkBlue} !important;
   }
 
   i {

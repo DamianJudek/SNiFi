@@ -8,7 +8,7 @@ const GlobalStyle = createGlobalStyle`
 
 .MuiPaper-root {
     border-radius: 5px !important;
-    padding: 5px;
+    padding: 5px !important;
     background-color: ${({ theme }) => theme.palette.black} !important;
 }
 `;

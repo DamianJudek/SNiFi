@@ -30,9 +30,9 @@ export const Progress = styled.span`
 
 export const StyledLinearLoader = styled(LinearProgress)<LinearProgressProps>`
   min-width: 300px;
-  background-color: ${({ theme }) => theme.palette.blueLighter} !important;
+  background-color: ${({ theme }) => theme.palette.lightBlue} !important;
 
   span {
-    background-color: ${({ theme }) => theme.palette.blueDarker};
+    background-color: ${({ theme }) => theme.palette.darkBlue};
   }
 `;

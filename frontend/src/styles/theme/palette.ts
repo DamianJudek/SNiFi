@@ -7,13 +7,16 @@ export const palette = {
   darkWhite: "#F0F0F0",
   white: "#FFFFFF",
   blue: "#76ABAE",
-  blueDarker: "#51878a",
-  blueLighter: "#98c0c2",
+  darkBlue: "#51878a",
+  lightBlue: "#98c0c2",
   red: "#B80000",
-  redDarker: "#8a0000",
-  redLighter: "#ff0a0a",
+  darkRed: "#4d0000",
+  lightRed: "#ff0a0a",
   green: "#00FFAB",
-  gold: "#ffdd29",
+  darkGreen: "#00291b",
+  gold: "#a87602",
+  yellow: "#ffdd29",
+  darkYellow: "#382801",
 } as const;
 
 export type PaletteKeys = keyof typeof palette;
