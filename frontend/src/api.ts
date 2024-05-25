@@ -32,3 +32,6 @@ export const updateDevice = (
     body: JSON.stringify(body),
   });
 };
+
+export const getDnsStats = () =>
+  fetch(`${apiBase}/dns_stats`, { method: "GET" });
