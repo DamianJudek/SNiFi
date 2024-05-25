@@ -15,7 +15,6 @@ from pymongo import MongoClient
 from util.iputil import get_default_gateway_ip
 from daemon.device_daemon import update_devices_with_scan_result
 from daemon.discovery_daemon import discovery_scan
-from daemon.nmap_daemon import subnet_quickscan
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +33,7 @@ swagger = Swagger(app, template={
     ],
 })
 
-executor = ThreadPoolExecutor(max_workers=4)
+executor = ThreadPoolExecutor(max_workers=1)
 
 mongo_url = 'mongodb://localhost:27017/'
 
@@ -43,6 +42,8 @@ db = client['snifi-db']
 scan_status_collection = db['scan_status']
 scan_result_collection = db['scan_result']
 device_collection = db['devices']
+
+scan_status_collection.delete_many({'status': 'running'})
 
 
 class Devices(Resource):
@@ -70,11 +71,16 @@ class StartDiscovery(Resource):
         responses:
           200:
             description: Scan started successfully
+          422:
+            description: Another scan is already running
         """
 
         uid = str(uuid.uuid4())
 
         logger.info(f'Starting scan with id: {uid}')
+
+        if scan_status_collection.count_documents({'status': 'running'}) > 0:
+            return {'error': 'Another scan is already running'}, 422
 
         executor.submit(self.start_discovery, uid)
 
