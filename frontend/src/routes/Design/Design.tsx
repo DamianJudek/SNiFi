@@ -13,6 +13,8 @@ import Switch from "../../components/Switch/Switch";
 import ConnectedDevices from "../../components/ConnectedDevices/ConnectedDevices";
 import IconBadge from "../../components/IconBadge/IconBadge";
 import ManualScan from "../../components/ManualScan/ManualScan";
+import { CircularLoader, LinearLoader } from "../../components/Loader/Loader";
+import useAlert from "../../hooks/useAlert";
 
 type ComponentSectionProps = {
   title: string;
@@ -31,6 +33,7 @@ const ComponentSection = ({ title, children }: ComponentSectionProps) => {
 const Design = () => {
   const [selectValue, setSelectValue] = useState<string>("");
   const [switchChecked, setSwitchChecked] = useState<boolean>(false);
+  const [showAlert, Alert] = useAlert({});
 
   return (
     <Container>
@@ -86,6 +89,18 @@ const Design = () => {
 
       <ComponentSection title="Manual scan">
         <ManualScan />
+      </ComponentSection>
+
+      <ComponentSection title="Loader">
+        <CircularLoader />
+        <LinearLoader progress={"20.5"} />
+      </ComponentSection>
+
+      <ComponentSection title="Alert">
+        <button onClick={() => showAlert("Some info", "warning")}>
+          open alert
+        </button>
+        {Alert}
       </ComponentSection>
     </Container>
   );

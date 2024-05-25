@@ -11,7 +11,7 @@ export const StyledSwitch = styled(Switch)`
     color: ${({ theme }) => theme.palette.lightGray};
   }
   .MuiSwitch-switchBase.Mui-checked {
-    color: ${({ theme }) => theme.palette.blueDarker};
+    color: ${({ theme }) => theme.palette.darkBlue};
   }
 
   .MuiSwitch-track {

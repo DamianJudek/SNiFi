@@ -1,5 +1,10 @@
 export type DeviceStatus = "up" | "down" | "blocked";
 
+export type Availability = {
+  timestamp: string;
+  available: boolean;
+}[];
+
 export interface DeviceApiResponse {
   mac: string;
   name: string | null;
@@ -11,14 +16,4 @@ export interface DeviceApiResponse {
   availability: Availability;
 }
 
-export type Availability = {
-  timestamp: string;
-  available: boolean;
-}[];
-
 export type ConnectedDevicesApiResponse = DeviceApiResponse[];
-
-export interface DeviceProps extends DeviceApiResponse {
-  handleVerify: (mac: string, state: boolean) => void;
-  handleBlock: (mac: string, state: boolean) => void;
-}

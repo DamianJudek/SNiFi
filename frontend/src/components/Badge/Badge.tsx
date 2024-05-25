@@ -22,7 +22,7 @@ export const Pill = styled.span<StyledPillProps>`
   ${({ theme, $red }) =>
     $red &&
     `
-    background-color: ${theme.palette.redLighter};
+    background-color: ${theme.palette.lightRed};
     color: ${theme.palette.white};
 
   `};
