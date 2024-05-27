@@ -7,7 +7,7 @@ from datetime import datetime
 
 from adguardhome import AdGuardHome as Adg
 from flasgger import Swagger
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Api, Resource, reqparse
 from nmap import PortScannerError
 from pymongo import MongoClient
@@ -29,6 +29,7 @@ swagger = Swagger(app, template={
         {"name": "devices", "description": "Discovered devices information"},
         {"name": "scans", "description": "Network scan management"},
         {"name": "dns", "description": "Dns proxy management"},
+        {"name": "integrations", "description": "Integration management"},
         {"name": "other", "description": "Miscellaneous"}
     ],
 })
@@ -42,6 +43,7 @@ db = client['snifi-db']
 scan_status_collection = db['scan_status']
 scan_result_collection = db['scan_result']
 device_collection = db['devices']
+integrations_collection = db['integrations']
 
 scan_status_collection.delete_many({'status': 'running'})
 
@@ -330,19 +332,33 @@ class HealthCheck(Resource):
         return {'status': 'ok'}
 
 
-class Debug(Resource):
-    def get(self):
+class Integrations(Resource):
+    def post(self):
         """
-        Debug endpoint
+        Updates either discord bot token or telegram bot token and chatId
         ---
         tags:
-          - other
+          - integrations
         responses:
             200:
-                description: Debug response
+                description: Integrations response
         """
-        update_devices_with_scan_result(db, 'c40407a2-9fe5-48e0-bd2f-af7d02ea76fd')
+        json_data = request.get_json(force=True)
+
+        if 'discordWebhookUrl' not in json_data and 'telegramBotToken' not in json_data and 'telegramChatId' not in json_data:
+            return {'status': 'error', 'message': 'No data provided'}, 400
+
+        if 'discordWebhookUrl' in json_data:
+            discord_webhook_url = json_data['discordWebhookUrl']
+            integrations_collection.replace_one({'type': 'discord'}, {'type': 'discord', 'details': {'discordWebhookUrl': discord_webhook_url}}, upsert=True)
+
+        if 'telegramBotToken' in json_data and 'telegramChatId' in json_data:
+            telegram_bot_token = json_data['telegramBotToken']
+            telegram_chat_id = json_data['telegramChatId']
+            integrations_collection.replace_one({'type': 'telegram'}, {'type': 'telegram', 'details': {'telegramBotToken': telegram_bot_token, 'telegramChatId': telegram_chat_id}}, upsert=True)
+
         return {'status': 'ok'}
+
 
 api.add_resource(Devices, '/devices')
 api.add_resource(StartDiscovery, '/start_discovery')
@@ -353,7 +369,7 @@ api.add_resource(UpdateDevice, '/device/<string:mac_addr>/update')
 api.add_resource(Protection, '/protection')
 api.add_resource(DnsStats, '/dns_stats')
 
-api.add_resource(Debug, '/debug')
+api.add_resource(Integrations, '/integrations')
 
 api.add_resource(HealthCheck, '/health_check')
 
