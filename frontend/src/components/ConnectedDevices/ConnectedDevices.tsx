@@ -54,7 +54,6 @@ const ConnectedDevices = () => {
         return res.json();
       })
       .then((resp) => {
-        console.log("devicesResponse", resp);
         setDetectedDevices(resp);
       })
 

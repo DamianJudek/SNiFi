@@ -15,6 +15,7 @@ import IconBadge from "../../components/IconBadge/IconBadge";
 import ManualScan from "../../components/ManualScan/ManualScan";
 import { CircularLoader, LinearLoader } from "../../components/Loader/Loader";
 import useAlert from "../../hooks/useAlert";
+import DnsStatistics from "../../components/DnsStatistics/DnsStatistics";
 
 type ComponentSectionProps = {
   title: string;
@@ -97,10 +98,18 @@ const Design = () => {
       </ComponentSection>
 
       <ComponentSection title="Alert">
-        <button onClick={() => showAlert("Some info", "warning")}>
-          open alert
-        </button>
+        <Button onClick={() => showAlert("Some info", "success")}>
+          success
+        </Button>
+        <Button onClick={() => showAlert("Some info", "warning")}>
+          warning
+        </Button>
+        <Button onClick={() => showAlert("Some info", "error")}>error</Button>
+        <Button onClick={() => showAlert("Some info", "info")}>info</Button>
         {Alert}
+      </ComponentSection>
+      <ComponentSection title="DNS statistics">
+        <DnsStatistics />
       </ComponentSection>
     </Container>
   );

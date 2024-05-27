@@ -18,16 +18,12 @@ export const Alert = ({
   return (
     <StyledSnackbar
       open={open}
+      onClose={handleClose}
       autoHideDuration={duration}
       anchorOrigin={{ vertical, horizontal }}
       TransitionComponent={SlideTransition}
     >
-      <StyledAlert
-        onClose={handleClose}
-        severity={severity}
-        variant="filled"
-        sx={{ width: "100%" }}
-      >
+      <StyledAlert severity={severity} variant="filled" sx={{ width: "100%" }}>
         {message}
       </StyledAlert>
     </StyledSnackbar>

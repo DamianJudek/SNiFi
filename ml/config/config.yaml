@@ -1,0 +1,86 @@
+dataset_directory: "data/production/csv/"
+model_path: "models/RF_model_v1.0.1_SMOTE.pkl"
+random_state: 42
+X_columns:
+  - flow_duration
+  - Header_Length
+  - Protocol Type
+  - Duration
+  - Rate
+  - Srate
+  - Drate
+  - fin_flag_number
+  - syn_flag_number
+  - rst_flag_number
+  - psh_flag_number
+  - ack_flag_number
+  - ece_flag_number
+  - cwr_flag_number
+  - ack_count
+  - syn_count
+  - fin_count
+  - urg_count
+  - rst_count
+  - HTTP
+  - HTTPS
+  - DNS
+  - Telnet
+  - SMTP
+  - SSH
+  - IRC
+  - TCP
+  - UDP
+  - DHCP
+  - ARP
+  - ICMP
+  - IPv
+  - LLC
+  - Tot sum
+  - Min
+  - Max
+  - AVG
+  - Std
+  - Tot size
+  - IAT
+  - Number
+  - Magnitue
+  - Radius
+  - Covariance
+  - Variance
+  - Weight
+y_column: label
+class_mapping:
+  DDoS-RSTFINFlood: Attack
+  DDoS-PSHACK_Flood: Attack
+  DDoS-SYN_Flood: Attack
+  DDoS-UDP_Flood: Attack
+  DDoS-TCP_Flood: Attack
+  DDoS-ICMP_Flood: Attack
+  DDoS-SynonymousIP_Flood: Attack
+  DDoS-ACK_Fragmentation: Attack
+  DDoS-UDP_Fragmentation: Attack
+  DDoS-ICMP_Fragmentation: Attack
+  DDoS-SlowLoris: Attack
+  DDoS-HTTP_Flood: Attack
+  DoS-UDP_Flood: Attack
+  DoS-SYN_Flood: Attack
+  DoS-TCP_Flood: Attack
+  DoS-HTTP_Flood: Attack
+  Mirai-greeth_flood: Attack
+  Mirai-greip_flood: Attack
+  Mirai-udpplain: Attack
+  Recon-PingSweep: Attack
+  Recon-OSScan: Attack
+  Recon-PortScan: Attack
+  VulnerabilityScan: Attack
+  Recon-HostDiscovery: Attack
+  DNS_Spoofing: Attack
+  MITM-ArpSpoofing: Attack
+  BenignTraffic: Benign
+  BrowserHijacking: Attack
+  Backdoor_Malware: Attack
+  XSS: Attack
+  Uploading_Attack: Attack
+  SqlInjection: Attack
+  CommandInjection: Attack
+  DictionaryBruteForce: Attack
