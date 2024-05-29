@@ -10,6 +10,9 @@ ENV PATH="/root/.local/bin:$PATH"
 RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi
 COPY . /app
+ENV FLASK_APP=app.py
+ENV FLASK_ENV=production
 EXPOSE 5000
 
-CMD ["poetry", "run", "python", "app.py"]
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app", "--reload"]
+# CMD ["poetry", "run", "python", "app.py"]

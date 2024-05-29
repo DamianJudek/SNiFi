@@ -4,14 +4,18 @@ import joblib
 import subprocess
 import logging
 import pandas as pd
-import numpy as np
+
 from flask import Flask, request, jsonify
 from flasgger import Swagger
 from pymongo import MongoClient
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 from multiprocessing import Process
+from dotenv import load_dotenv
+
 from utils.feature_extraction import Feature_extraction
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
@@ -29,17 +33,15 @@ swagger = Swagger(app, template={
 
 executor = ThreadPoolExecutor(max_workers=4)
 
-#TODO: do config
-model_path = "models/RF_model_v1.1.0.pkl"
+model_path = os.getenv("MODEL_PATH", "models/RF_model_v1.1.0.pkl")
+columns_path = os.getenv("COLUMNS_PATH", "models/feature_columns.pkl")
+scaler_path = os.getenv("SCALER_PATH", "models/scaler.pkl")
+mongo_url = os.getenv("MONGO_URL", "mongodb://localhost:27017/")
+
 model = joblib.load(model_path)
-
-columns_path = "models/feature_columns.pkl"
 feature_columns = joblib.load(columns_path)
-
-scaler_path = "models/scaler.pkl"
 scaler = joblib.load(scaler_path)
 
-mongo_url = os.getenv("MONGO_URL", "mongodb://localhost:27017/")
 client = MongoClient(mongo_url)
 db = client['snifi-predictions-db']
 predictions_collection = db['predictions']
@@ -58,10 +60,6 @@ def process_split_file(subfile_path, processed_file_path):
         logger.info(f"Processing split file: {subfile_path}")
         feature_extractor.pcap_evaluation(subfile_path, processed_file_path)
         logger.info(f"Processed file saved as: {processed_file_path}")
-    except KeyError as e:
-        logger.error(f"KeyError in process_split_file: {e}")
-    except ZeroDivisionError as e:
-        logger.error(f"ZeroDivisionError in process_split_file: {e}")
     except Exception as e:
         logger.error(f"Exception in process_split_file: {e}")
         raise
@@ -91,19 +89,16 @@ def process_pcap(file_path, scan_id):
         if not subfiles:
             raise Exception("No split files generated.")
 
-        subfiles_threadlist = np.array_split(subfiles, (len(subfiles)//12)+1)
         processes = []
-        for f_list in tqdm(subfiles_threadlist):
-            n_processes = min(len(f_list), 12)
-            for i in range(n_processes):
-                fe = Feature_extraction()
-                f = f_list[i]
-                subpcap_file = os.path.join(split_directory, f)
-                p = Process(target=fe.pcap_evaluation, args=(subpcap_file, os.path.join(destination_directory, f.split('.')[0])))
-                p.start()
-                processes.append(p)
-            for p in processes:
-                p.join()
+        for subfile in subfiles:
+            subpcap_file = os.path.join(split_directory, subfile)
+            processed_file_path = os.path.join(destination_directory, f"{subfile}.csv")
+            p = Process(target=process_split_file, args=(subpcap_file, processed_file_path))
+            p.start()
+            processes.append(p)
+
+        for p in processes:
+            p.join()
 
         assert len(subfiles) == len(os.listdir(destination_directory)), "Mismatch in number of processed files."
 
@@ -124,6 +119,7 @@ def process_pcap(file_path, scan_id):
         processing_status_collection.update_one({"scan_id": scan_id}, {"$set": {"status": "error", "error": str(e)}})
 
 def submit_for_prediction(processed_file_path, scan_id):
+    label_mapping = {0: "Benign", 1: "Attack"}
     try:
         logger.info(f"Submitting for prediction: {processed_file_path}")
         data = pd.read_csv(processed_file_path)
@@ -139,19 +135,20 @@ def submit_for_prediction(processed_file_path, scan_id):
         confidence_levels = model.predict_proba(data[feature_columns])
         confidence_for_class = confidence_levels.max(axis=1)
 
-        predictions = predictions.tolist()
+        logger.info(f"Raw predictions: {predictions}")
+        mapped_predictions = [label_mapping.get(int(pred), "Unknown") for pred in predictions]
         confidence_for_class = confidence_for_class.tolist()
 
         prediction_data = {
             "scan_id": scan_id,
-            "predictions": [{"index": i, "prediction": int(pred), "confidence": float(conf)} for i, (pred, conf) in enumerate(zip(predictions, confidence_for_class))]
+            "predictions": [{"prediction": pred, "confidence": float(conf)} for pred, conf in zip(mapped_predictions, confidence_for_class)]
         }
+        
         predictions_collection.insert_one(prediction_data)
         logger.info(f"Predictions saved for scan_id: {scan_id}")
     except Exception as e:
         logger.exception(f"Error in prediction: {e}")
         processing_status_collection.update_one({"scan_id": scan_id}, {"$set": {"status": "error", "error": str(e)}})
-
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -235,7 +232,8 @@ def get_status(scan_id):
     status = processing_status_collection.find_one({"scan_id": scan_id}, {"_id": False})
     if not status:
         return jsonify({"error": "Scan not found"}), 404
-    return jsonify(status), 200
+    in_progress = status["status"] == "processing"
+    return jsonify({"scan_id": scan_id, "inProgress": in_progress, "status": status["status"]}), 200
 
 @app.route('/predict/result/<string:scan_id>', methods=['GET'])
 def get_result(scan_id):
@@ -260,6 +258,19 @@ def get_result(scan_id):
     if not result:
         return jsonify({"error": "Scan not found"}), 404
     return jsonify(result), 200
+
+@app.route('/health_check', methods=['GET'])
+def health_check():
+    """
+    Health check endpoint
+    ---
+    tags:
+      - ml
+    responses:
+      200:
+        description: API is running
+    """
+    return jsonify({"status": "ok"}), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
