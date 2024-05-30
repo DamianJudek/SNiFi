@@ -8,6 +8,7 @@ from datetime import datetime
 from adguardhome import AdGuardHome as Adg
 from flasgger import Swagger
 from flask import Flask, request
+from flask_cors import CORS
 from flask_restful import Api, Resource, reqparse
 from nmap import PortScannerError
 from pymongo import MongoClient
@@ -20,6 +21,7 @@ from daemon.discovery_daemon import discovery_scan
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+CORS(app)
 api = Api(app)
 swagger = Swagger(app, template={
     "info": {
