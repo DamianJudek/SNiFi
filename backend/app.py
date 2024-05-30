@@ -398,6 +398,13 @@ api.add_resource(Integrations, '/integrations')
 
 api.add_resource(HealthCheck, '/health_check')
 
+class Debug(Resource):
+    def get(self):
+        update_devices_with_scan_result(db, 'b9c6f273-c89d-4051-b9b4-00eba444f610')
+        return {'status': 'ok'}
+
+api.add_resource(Debug, '/debug')
+
 logger.info("SNiFi has started successfully!")
 
 if __name__ == "__main__":

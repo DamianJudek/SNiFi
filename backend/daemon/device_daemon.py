@@ -22,14 +22,14 @@ def update_devices_with_scan_result(db: Database, scanId: str):
     current_devices_macs = [device['mac'] for device in scan['result']]
     for device in previous_devices:
         if device['mac'] not in current_devices_macs:
-            update_existing_device(devices_collection, device['ip'], device['mac'], scanId, scan['timestamp'], available=False)
+            update_existing_device(devices_collection, notifications_collection, device['ip'], device['mac'], scanId, scan['timestamp'], available=False)
             logger.debug(f'Device {device["mac"]} not found in scan {scanId}, updating availability')
 
     for device in scan['result']:
         if device['mac'] not in previous_devices_macs:
-            new_device_detected(devices_collection, device['ip'], device['mac'], scanId, scan['timestamp'])
+            new_device_detected(devices_collection, notifications_collection, device['ip'], device['mac'], scanId, scan['timestamp'])
         else:
-            update_existing_device(devices_collection, device['ip'], device['mac'], scanId, scan['timestamp'])
+            update_existing_device(devices_collection, notifications_collection, device['ip'], device['mac'], scanId, scan['timestamp'])
 
     logger.info('Devices collection updated')
 
@@ -65,6 +65,7 @@ def new_device_detected(devices_collection: Collection, notifications_collection
                 'ip': ip
             },
             'scanId': scanId,
+            'seen': False,
             'timestamp': timestamp
         }
     )
@@ -85,6 +86,7 @@ def update_existing_device(devices_collection: Collection, notifications_collect
                     'ip': ip
                 },
                 'scanId': scanId,
+                'seen': False,
                 'timestamp': timestamp
             }
         )
@@ -101,6 +103,7 @@ def update_existing_device(devices_collection: Collection, notifications_collect
                     'ip': ip
                 },
                 'scanId': scanId,
+                'seen': False,
                 'timestamp': timestamp
             }
         )
