@@ -8,7 +8,7 @@ services:
       interval: 1s
       timeout: 1s
       retries: 1000
-  adguard:
+  adg:
     image: 'adguard/adguardhome:latest'
     ports:
       - '53:53/tcp'
