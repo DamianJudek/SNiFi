@@ -40,9 +40,9 @@ export const getIntegrations = () =>
   fetch(`${apiBase}/integrations`, { method: "GET" });
 
 type SetIntegrationsBody = {
-  webhook?: undefined | string;
-  botToken?: undefined | string;
-  chatId?: undefined | string;
+  discordWebhookUrl?: undefined | string;
+  telegramBotToken?: undefined | string;
+  telegramChatId?: undefined | string;
 };
 
 export const setIntegrations = (
@@ -52,15 +52,15 @@ export const setIntegrations = (
 ) => {
   const body: SetIntegrationsBody = {};
   if (webhook !== undefined) {
-    body.webhook = webhook;
+    body.discordWebhookUrl = webhook;
   }
 
   if (botToken !== undefined) {
-    body.botToken = botToken;
+    body.telegramBotToken = botToken;
   }
 
   if (chatId !== undefined) {
-    body.chatId = chatId;
+    body.telegramChatId = chatId;
   }
 
   return fetch(`${apiBase}/integrations`, {

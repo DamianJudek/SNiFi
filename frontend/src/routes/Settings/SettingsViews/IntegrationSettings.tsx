@@ -65,14 +65,14 @@ const IntegrationSettings = () => {
       })
       .then((integrations) => {
         console.log("integrations", integrations);
-        if (integrations.webhook) {
-          setWebhook(integrations.webhook);
+        if (integrations?.discord?.discordWebhookUrl) {
+          setWebhook(integrations.discord.discordWebhookUrl);
         }
-        if (integrations.chatId) {
-          setWebhook(integrations.chatId);
+        if (integrations?.telegram?.telegramChatId) {
+          setChatId(integrations?.telegram?.telegramChatId);
         }
-        if (integrations.botToken) {
-          setWebhook(integrations.botToken);
+        if (integrations?.telegram?.telegramBotToken) {
+          setBotToken(integrations.telegram.telegramBotToken);
         }
       })
 
