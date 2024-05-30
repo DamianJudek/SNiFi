@@ -5,6 +5,12 @@ interface StyledButtonProps {
   $color: "red" | "blue";
 }
 
+const upper = (color: string): "Red" | "Blue" => {
+  const colorTemp = [...color];
+  colorTemp[0] = colorTemp[0].toUpperCase();
+  return colorTemp.join("") as "Red" | "Blue";
+};
+
 export const StyledButton = styled(Button)<StyledButtonProps>(
   ({ theme, $color }) => `
     display: flex;
@@ -22,19 +28,19 @@ export const StyledButton = styled(Button)<StyledButtonProps>(
     color: ${theme.palette.white};
 
     &:hover {
-      background-color: ${theme.palette[`${$color}Darker`]};
+      background-color: ${theme.palette[`dark${upper($color)}`]};
     }
   
     &.${buttonClasses.active} {
-      background-color: ${theme.palette[`${$color}Darker`]};
+      background-color: ${theme.palette[`dark${upper($color)}`]};
     }
   
     &.${buttonClasses.focusVisible} {
-      background-color: ${theme.palette[`${$color}Lighter`]};
+      background-color: ${theme.palette[`light${upper($color)}`]};
     }
   
     &.${buttonClasses.disabled} {
-      background-color: ${theme.palette[`${$color}Lighter`]};
+      background-color: ${theme.palette[`light${upper($color)}`]};
       opacity:0.6;
     }
 

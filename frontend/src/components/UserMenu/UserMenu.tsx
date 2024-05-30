@@ -4,6 +4,7 @@ import Avatar from "@mui/material/Avatar";
 import Menu from "@mui/material/Menu";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
+import { Link } from "react-router-dom";
 import Icon from "../Icon/Icon";
 import { StyledMenuItem } from "./UserMenu.styled";
 import Divider from "../Divider/Divider";
@@ -50,8 +51,10 @@ export default function UserMenu() {
         </StyledMenuItem>
         <Divider />
         <StyledMenuItem onClick={handleClose}>
-          <Icon name="settings" />
-          Settings
+          <Link to="/settings">
+            <Icon name="settings" />
+            Settings
+          </Link>
         </StyledMenuItem>
         <StyledMenuItem onClick={handleClose}>
           <Icon name="logout" />

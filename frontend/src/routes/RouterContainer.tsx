@@ -8,16 +8,16 @@ import Settings from "./Settings/Settings";
 const RouterContainer = () => {
   return (
     <>
-      <Header />
-      <Layout>
-        <BrowserRouter>
+      <BrowserRouter>
+        <Header />
+        <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="design" element={<Design />} />
             <Route path="settings" element={<Settings />} />
           </Routes>
-        </BrowserRouter>
-      </Layout>
+        </Layout>
+      </BrowserRouter>
     </>
   );
 };
