@@ -1,8 +1,8 @@
 import styled from "styled-components";
-import { LabelBold } from "../../styles/typography";
+import { LabelSmallBold } from "../../styles/typography";
 
 export const Pill = styled.span<StyledPillProps>`
-  ${LabelBold};
+  ${LabelSmallBold};
   display: flex;
   align-items: center;
   justify-content: center;

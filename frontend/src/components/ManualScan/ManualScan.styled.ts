@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import Alert from "@mui/material/Alert";
 import Button from "../../components/Button/Button";
-import { Paragraph, LabelBold } from "../../styles/typography";
+import { Paragraph, LabelSmallBold } from "../../styles/typography";
 
 export const Container = styled.div`
   display: flex;
@@ -75,7 +75,7 @@ export const Info = styled.p`
 `;
 
 export const InfoButton = styled.button`
-  ${LabelBold};
+  ${LabelSmallBold};
   display: inline;
   border: none;
   margin: 0;

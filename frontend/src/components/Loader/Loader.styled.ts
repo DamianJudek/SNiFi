@@ -3,7 +3,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import LinearProgress, {
   LinearProgressProps,
 } from "@mui/material/LinearProgress";
-import { LabelBold } from "../../styles/typography";
+import { LabelSmallBold } from "../../styles/typography";
 
 export const CircularContainer = styled.div`
   padding: ${({ theme }) => theme.spacing.large};
@@ -24,7 +24,7 @@ export const LinearContainer = styled.div`
 `;
 
 export const Progress = styled.span`
-  ${LabelBold};
+  ${LabelSmallBold};
   padding-left: ${({ theme }) => theme.spacing.medium};
 `;
 

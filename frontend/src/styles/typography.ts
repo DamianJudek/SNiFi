@@ -43,11 +43,20 @@ export const Label = css`
 `;
 
 export const LabelBold = css`
+  ${Label}
+  font-weight: ${({ theme }) => theme.weight.bold};
+`;
+
+export const LabelSmall = css`
   font-family: ${({ theme }) => theme.font.roboto};
   color: ${({ theme }) => theme.palette.white};
-  font-weight: ${({ theme }) => theme.weight.bold};
   font-size: 14px;
   margin: 0;
+`;
+
+export const LabelSmallBold = css`
+  ${LabelSmall}
+  font-weight: ${({ theme }) => theme.weight.bold};
 `;
 
 export const SmallInfo = css`

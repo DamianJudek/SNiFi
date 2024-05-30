@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { H2, LabelBold } from "../../styles/typography";
+import { H2, LabelSmallBold } from "../../styles/typography";
 
 export const HeaderRow = styled.div`
   display: grid;
@@ -11,7 +11,7 @@ export const HeaderRow = styled.div`
 `;
 
 export const HeaderLabel = styled.span`
-  ${LabelBold}
+  ${LabelSmallBold}
   text-align: center;
 `;
 

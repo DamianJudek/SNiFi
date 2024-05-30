@@ -68,3 +68,6 @@ export const setIntegrations = async (
     body: JSON.stringify(body),
   });
 };
+
+export const getNotifications = () =>
+  fetch(`${apiBase}/notifications`, { method: "GET" });
