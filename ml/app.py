@@ -32,13 +32,13 @@ swagger = Swagger(app, template={
     ],
 })
 
-executor = ThreadPoolExecutor(max_workers=4)
+executor = ThreadPoolExecutor(max_workers=1)
 lock = threading.Lock()
 
 model_path = os.getenv("MODEL_PATH", "models/RF_model_v1.1.0.pkl")
 columns_path = os.getenv("COLUMNS_PATH", "models/feature_columns.pkl")
 scaler_path = os.getenv("SCALER_PATH", "models/scaler.pkl")
-mongo_url = os.getenv("MONGO_URL", "mongodb://localhost:27017/")
+mongo_url = os.getenv("MONGO_URL", "mongodb://mongodb:27017/")
 
 model = joblib.load(model_path)
 feature_columns = joblib.load(columns_path)
@@ -147,12 +147,18 @@ def submit_for_prediction(processed_file_path, scan_id):
         confidence_levels = model.predict_proba(data[feature_columns])
         confidence_for_class = confidence_levels.max(axis=1)
 
-        predictions = predictions.tolist()
-        confidence_for_class = confidence_for_class.tolist()
+        attack_predictions = sum(predictions)
+        benign_predictions = len(predictions) - attack_predictions
+
+        attack_ratio = attack_predictions / len(predictions)
+
+        final_decision = "Attack" if attack_ratio > 0.5 else "Benign"
 
         prediction_data = {
             "scan_id": scan_id,
-            "predictions": [{"prediction": label_mapping[int(pred)], "confidence": float(conf)} for pred, conf in zip(predictions, confidence_for_class)]
+            "final_decision": final_decision,
+            "attack_ratio": attack_ratio,
+            "total_predictions": len(predictions)
         }
         predictions_collection.insert_one(prediction_data)
         logger.info(f"Predictions saved for scan_id: {scan_id}")
