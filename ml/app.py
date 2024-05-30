@@ -7,6 +7,7 @@ import pandas as pd
 import threading
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from flasgger import Swagger
 from pymongo import MongoClient
 from concurrent.futures import ThreadPoolExecutor

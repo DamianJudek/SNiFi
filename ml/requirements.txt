@@ -210,6 +210,9 @@ fastparquet==2024.2.0 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:fe1b88f51687566eac9fa94f7ce4f17b8df9e4b7ba8f7d37f383e7140414fe98
 flasgger==0.9.7.1 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:ca098e10bfbb12f047acc6299cc70a33851943a746e550d86e65e60d4df245fb
+flask-cors==4.0.1 ; python_version >= "3.11" and python_version < "4.0" \
+    --hash=sha256:eeb69b342142fdbf4766ad99357a7f3876a2ceb77689dc10ff912aac06c389e4 \
+    --hash=sha256:f2a704e4458665580c074b714c4627dd5a306b333deb9074d0b1794dfa2fb677
 flask-restful==0.3.10 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:1cf93c535172f112e080b0d4503a8d15f93a48c88bdd36dd87269bdaf405051b \
     --hash=sha256:fe4af2ef0027df8f9b4f797aba20c5566801b6ade995ac63b588abf1a59cec37
