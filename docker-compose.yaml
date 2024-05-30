@@ -62,7 +62,8 @@ services:
       - '5001:5000'
     command: 'gunicorn -b 0.0.0.0:5000 app:app --reload'
     volumes:
-      - './ml/:/srv'
+      - './ml/:/app'
+      - './pcap_files/:/app/uploads'  # delete
     healthcheck:
       test: curl -f http://localhost:5000/health_check
       interval: 1s

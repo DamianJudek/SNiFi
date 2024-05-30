@@ -21,4 +21,9 @@ ENV FLASK_ENV=production
 
 EXPOSE 5000
 
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app", "--reload"]
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+CMD ["sh", "/app/start.sh"]
+# CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app", "--reload"]
+# CMD ["sh", "-c", "gunicorn -b 0.0.0.0:5000 app:app --reload & python auto_processor.py"]
