@@ -45,7 +45,7 @@ type SetIntegrationsBody = {
   telegramChatId?: undefined | string;
 };
 
-export const setIntegrations = (
+export const setIntegrations = async (
   webhook: string,
   botToken: string,
   chatId: string

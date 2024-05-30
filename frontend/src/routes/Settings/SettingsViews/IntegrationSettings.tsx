@@ -82,20 +82,21 @@ const IntegrationSettings = () => {
       });
   };
 
-  const updateIntegrations = () => {
+  const updateIntegrations = async () => {
     setIntegrations(webhook, botToken, chatId)
-      .then((res) => {
+      .then(async (res) => {
         if (res.status !== 200) {
-          console.error("Failed to update integration data", res);
-          throw new Error("Failed to update integration data");
+          const json = await res.json();
+          throw new Error(json);
         }
       })
       .then(() => {
         showAlert("Integrations updated successfully", "success");
       })
 
-      .catch(() => {
-        showAlert("Error fetching integrations", "error");
+      .catch((e) => {
+        console.error("Failed to update integration data", e);
+        showAlert("Failed to update integration data", "error");
       });
   };
 
