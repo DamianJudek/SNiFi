@@ -8,6 +8,7 @@ from datetime import datetime
 from adguardhome import AdGuardHome as Adg
 from flasgger import Swagger
 from flask import Flask, request
+from flask_cors import CORS
 from flask_restful import Api, Resource, reqparse
 from nmap import PortScannerError
 from pymongo import MongoClient
@@ -17,9 +18,12 @@ from daemon.notification_daemon import load_notification_config
 from daemon.device_daemon import update_devices_with_scan_result
 from daemon.discovery_daemon import discovery_scan
 
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+logger.info("Initializing SNiFi...")
 
 app = Flask(__name__)
+CORS(app)
 api = Api(app)
 swagger = Swagger(app, template={
     "info": {
@@ -394,6 +398,8 @@ api.add_resource(DnsStats, '/dns_stats')
 api.add_resource(Integrations, '/integrations')
 
 api.add_resource(HealthCheck, '/health_check')
+
+logger.info("SNiFi has started successfully!")
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
