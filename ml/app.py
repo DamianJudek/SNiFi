@@ -80,7 +80,7 @@ def merge_csv_files(destination_directory, output_file_path):
 def process_pcap(file_path, scan_id):
     try:
         logger.info(f"Processing PCAP file: {file_path}")
-        processing_status_collection.update_one({"scan_id": scan_id}, {"$set": {"status": "processing"}})
+        processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "processing"}})
 
         split_directory = f'split_temp/{scan_id}'
         destination_directory = f'output/{scan_id}'
@@ -123,12 +123,12 @@ def process_pcap(file_path, scan_id):
         os.rmdir(split_directory)
         os.rmdir(destination_directory)
 
-        processing_status_collection.update_one({"scan_id": scan_id}, {"$set": {"status": "processed"}})
+        processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "processed"}})
         submit_for_prediction(full_processed_file_path, scan_id)
 
     except Exception as e:
         logger.exception(f"Error processing PCAP file: {e}")
-        processing_status_collection.update_one({"scan_id": scan_id}, {"$set": {"status": "error", "error": str(e)}})
+        processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "error", "error": str(e)}})
 
 def submit_for_prediction(processed_file_path, scan_id):
     label_mapping = {0: "Benign", 1: "Attack"}
@@ -138,33 +138,39 @@ def submit_for_prediction(processed_file_path, scan_id):
         if not set(feature_columns).issubset(data.columns):
             error_msg = "Extracted features CSV file is missing required columns"
             logger.error(error_msg)
-            processing_status_collection.update_one({"scan_id": scan_id}, {"$set": {"status": "error", "error": error_msg}})
+            processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "error", "error": error_msg}})
             return
 
         data[feature_columns] = scaler.transform(data[feature_columns])
 
-        predictions = model.predict(data[feature_columns])
-        confidence_levels = model.predict_proba(data[feature_columns])
+        predictions = model.predict(data[feature_columns]) # make predictions
+        confidence_levels = model.predict_proba(data[feature_columns]) # get confidence levels for each class
         confidence_for_class = confidence_levels.max(axis=1)
 
         attack_predictions = sum(predictions)
         benign_predictions = len(predictions) - attack_predictions
 
-        attack_ratio = attack_predictions / len(predictions)
+        attack_ratio = attack_predictions / len(predictions) # calculate the ratio of 'Attack' predictions to total predictions
+        average_confidence_attack = confidence_levels[predictions == 1, 1].mean() if attack_predictions > 0 else 0 # calculate the average confidence level for 'Attack' predictions
+        average_confidence_benign = confidence_levels[predictions == 0, 0].mean() if benign_predictions > 0 else 0 # calculate the average confidence level for 'Benign' predictions
 
-        final_decision = "Attack" if attack_ratio > 0.5 else "Benign"
+        decision_threshold = 0.6
+
+        final_decision = "Attack" if attack_ratio > decision_threshold and average_confidence_attack > 0.7 else "Benign" # final decision based on attack ratio and average confidence level
 
         prediction_data = {
-            "scan_id": scan_id,
-            "final_decision": final_decision,
-            "attack_ratio": attack_ratio,
-            "total_predictions": len(predictions)
+            "scanId": scan_id,
+            "finalDecision": final_decision,
+            "attackRatio": attack_ratio,
+            "averageConfidenceAttack": average_confidence_attack,
+            "averageConfidenceBenign": average_confidence_benign,
+            "totalPredictions": len(predictions)
         }
         predictions_collection.insert_one(prediction_data)
         logger.info(f"Predictions saved for scan_id: {scan_id}")
     except Exception as e:
         logger.exception(f"Error in prediction: {e}")
-        processing_status_collection.update_one({"scan_id": scan_id}, {"$set": {"status": "error", "error": str(e)}})
+        processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "error", "error": str(e)}})
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -203,11 +209,11 @@ def predict():
         return jsonify({"error": "File not saved"}), 500
 
     scan_id = str(uuid.uuid4())
-    processing_status_collection.insert_one({"scan_id": scan_id, "status": "uploaded", "file_name": file.filename})
+    processing_status_collection.insert_one({"scanId": scan_id, "status": "uploaded", "file_name": file.filename})
 
     executor.submit(process_pcap, file_path, scan_id)
 
-    return jsonify({"scan_id": scan_id}), 202
+    return jsonify({"scanId": scan_id}), 202
 
 @app.route('/predictions', methods=['GET'])
 def get_predictions():
@@ -245,11 +251,11 @@ def get_status(scan_id):
       404:
         description: Scan not found
     """
-    status = processing_status_collection.find_one({"scan_id": scan_id}, {"_id": False})
+    status = processing_status_collection.find_one({"scanId": scan_id}, {"_id": False})
     if not status:
         return jsonify({"error": "Scan not found"}), 404
     in_progress = status["status"] == "processing"
-    return jsonify({"scan_id": scan_id, "inProgress": in_progress, "status": status["status"]}), 200
+    return jsonify({"scanId": scan_id, "inProgress": in_progress, "status": status["status"]}), 200
 
 @app.route('/predict/result/<string:scan_id>', methods=['GET'])
 def get_result(scan_id):
@@ -270,7 +276,7 @@ def get_result(scan_id):
       404:
         description: Scan not found
     """
-    result = predictions_collection.find_one({"scan_id": scan_id}, {"_id": False})
+    result = predictions_collection.find_one({"scanId": scan_id}, {"_id": False})
     if not result:
         return jsonify({"error": "Scan not found"}), 404
     return jsonify(result), 200
