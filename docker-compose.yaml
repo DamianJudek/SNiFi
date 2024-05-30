@@ -27,7 +27,8 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-    network_mode: 'host'
+    ports:
+      - '5000:5000'
     command: 'gunicorn -b 0.0.0.0:5000 app:app --reload'
     volumes:
       - './backend/:/srv'
@@ -53,3 +54,22 @@ services:
       interval: 1s
       timeout: 1s
       retries: 1000
+  ml:
+    build: 'ml'
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    ports:
+      - '5001:5000'
+    command: 'gunicorn -b 0.0.0.0:5000 app:app --reload'
+    volumes:
+      - './ml/:/srv'
+    healthcheck:
+      test: curl -f http://localhost:5001/health_check
+      interval: 1s
+      timeout: 1s
+      retries: 1000
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
