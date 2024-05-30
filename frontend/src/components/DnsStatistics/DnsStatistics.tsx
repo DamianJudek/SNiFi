@@ -62,14 +62,6 @@ const DnsStatistics = () => {
 
   useEffect(fetchDnsStats, []);
 
-  if (isLoading) {
-    return (
-      <Container>
-        <CircularLoader />
-      </Container>
-    );
-  }
-
   return (
     <Container>
       <Title>DNS queries statistics</Title>

@@ -29,18 +29,21 @@ export const FileName = styled.span`
 `;
 
 export const FileUploaderWrapper = styled.div`
+  flex: 1;
+
   & * {
     box-sizing: border-box;
   }
 
   & > label {
     display: flex;
+
     flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 100%;
     min-width: 300px;
-    max-width: 800px;
+    height: 100%;
     padding: ${({ theme }) => theme.spacing.large};
     border: 2px dashed ${({ theme }) => theme.palette.darkBlue};
     border-radius: 5px;

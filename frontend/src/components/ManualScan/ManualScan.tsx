@@ -92,16 +92,22 @@ const ManualScan = () => {
   }, [currentScanId, scanning]);
 
   if (result) {
-    return <ManualScanResult {...result} reset={reset} />;
+    return (
+      <Container>
+        <ManualScanResult {...result} reset={reset} />
+      </Container>
+    );
   }
 
   if (scanning) {
     return (
-      <LoadingContainer>
-        <Header>Processing...</Header>
-        <CircularLoader />
-        {Alert}
-      </LoadingContainer>
+      <Container>
+        <LoadingContainer>
+          <Header>Processing...</Header>
+          <CircularLoader />
+          {Alert}
+        </LoadingContainer>
+      </Container>
     );
   }
 

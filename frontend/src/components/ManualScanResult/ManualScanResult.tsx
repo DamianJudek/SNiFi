@@ -2,6 +2,7 @@ import { ManualScanResultProps } from "./ManualScanResult.interface";
 import {
   Container,
   Header,
+  Content,
   Name,
   Value,
   Button,
@@ -24,15 +25,17 @@ const ManualScanResult = ({
   return (
     <Container $isAttack={isAttack}>
       <Header $isAttack={isAttack}>{message}</Header>
-      <Name>
-        Attack confidence: <Value>{toPercent(averageConfidenceAttack)}</Value>
-      </Name>
-      <Name>
-        Begin confidence: <Value>{toPercent(averageConfidenceBenign)}</Value>
-      </Name>
-      <Name>
-        Scanned packages: <Value>{totalPredictions}</Value>
-      </Name>
+      <Content>
+        <Name>
+          Attack confidence: <Value>{toPercent(averageConfidenceAttack)}</Value>
+        </Name>
+        <Name>
+          Begin confidence: <Value>{toPercent(averageConfidenceBenign)}</Value>
+        </Name>
+        <Name>
+          Scanned packages: <Value>{totalPredictions}</Value>
+        </Name>
+      </Content>
       <Button onClick={reset}>Scan other file</Button>
     </Container>
   );

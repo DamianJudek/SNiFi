@@ -1,6 +1,32 @@
 import styled from "styled-components";
 import { H2, LabelSmallBold } from "../../styles/typography";
 
+export const Contaienr = styled.section`
+  display: flex;
+  flex-direction: column;
+  max-width: 800px;
+  width: 100%;
+  min-width: 550px;
+  border-radius: 5px;
+`;
+
+export const Top = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80px;
+  width: 100%;
+  padding: 20px;
+  background-color: ${({ theme }) => theme.palette.darkGray};
+  border-radius: 5px;
+`;
+
+export const Title = styled.h2`
+  ${H2};
+  margin: 0;
+  font-size: 25px;
+`;
+
 export const HeaderRow = styled.div`
   display: grid;
   grid-template-columns: 1fr repeat(2, 3fr) repeat(2, 1.5fr);
@@ -13,31 +39,6 @@ export const HeaderRow = styled.div`
 export const HeaderLabel = styled.span`
   ${LabelSmallBold}
   text-align: center;
-`;
-
-export const Contaienr = styled.section`
-  display: flex;
-  flex-direction: column;
-  max-width: 700px;
-  min-width: 550px;
-  border-radius: 5px;
-`;
-
-export const Top = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 80px;
-  width: 100%;
-  padding: 20px 20px 20px 50px;
-  background-color: ${({ theme }) => theme.palette.darkGray};
-  border-radius: 5px;
-`;
-
-export const Title = styled.h2`
-  ${H2};
-  margin: 0;
-  font-size: 25px;
 `;
 
 export const Content = styled.div`
