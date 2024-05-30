@@ -7,15 +7,15 @@ from datetime import datetime
 
 from adguardhome import AdGuardHome as Adg
 from flasgger import Swagger
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Api, Resource, reqparse
 from nmap import PortScannerError
 from pymongo import MongoClient
 
 from util.iputil import get_default_gateway_ip
+from daemon.notification_daemon import load_notification_config
 from daemon.device_daemon import update_devices_with_scan_result
 from daemon.discovery_daemon import discovery_scan
-from daemon.nmap_daemon import subnet_quickscan
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +30,12 @@ swagger = Swagger(app, template={
         {"name": "devices", "description": "Discovered devices information"},
         {"name": "scans", "description": "Network scan management"},
         {"name": "dns", "description": "Dns proxy management"},
+        {"name": "integrations", "description": "Integration management"},
         {"name": "other", "description": "Miscellaneous"}
     ],
 })
 
-executor = ThreadPoolExecutor(max_workers=4)
+executor = ThreadPoolExecutor(max_workers=1)
 
 mongo_url = 'mongodb://localhost:27017/'
 
@@ -43,6 +44,11 @@ db = client['snifi-db']
 scan_status_collection = db['scan_status']
 scan_result_collection = db['scan_result']
 device_collection = db['devices']
+integrations_collection = db['integrations']
+
+load_notification_config(integrations_collection)
+
+scan_status_collection.delete_many({'status': 'running'})
 
 
 class Devices(Resource):
@@ -70,11 +76,16 @@ class StartDiscovery(Resource):
         responses:
           200:
             description: Scan started successfully
+          422:
+            description: Another scan is already running
         """
 
         uid = str(uuid.uuid4())
 
         logger.info(f'Starting scan with id: {uid}')
+
+        if scan_status_collection.count_documents({'status': 'running'}) > 0:
+            return {'error': 'Another scan is already running'}, 422
 
         executor.submit(self.start_discovery, uid)
 
@@ -270,7 +281,8 @@ class Protection(Resource):
         """
 
         parser = reqparse.RequestParser()
-        parser.add_argument('enable', type=lambda x: x.lower() == 'true', required=True, help='Enable or disable protection',
+        parser.add_argument('enable', type=lambda x: x.lower() == 'true', required=True,
+                            help='Enable or disable protection',
                             location='args')
         args = parser.parse_args()
 
@@ -302,12 +314,58 @@ class DnsStats(Resource):
         adg = Adg('localhost', port=8080, username='admin', password='password')
         stats = adg.stats
         summary = {
+            "protection_enabled": await adg.protection_enabled(),
             "stats_period": await stats.period(),
             "dns_queries": await stats.dns_queries(),
             "blocked_percentage": await stats.blocked_percentage(),
             "active_rules": await adg.filtering.rules_count(allowlist=False)
         }
         return summary
+
+
+class Integrations(Resource):
+    def get(self):
+        """
+        Gets the current integrations config
+        ---
+        tags:
+          - integrations
+        responses:
+            200:
+                description: Integrations response
+        """
+
+        return list(integrations_collection.find({}, {'_id': False}))
+
+    def post(self):
+        """
+        Updates either discord bot token or telegram bot token and chatId
+        ---
+        tags:
+          - integrations
+        responses:
+            200:
+                description: Integrations response
+        """
+        json_data = request.get_json(force=True)
+
+        if 'discordWebhookUrl' not in json_data and 'telegramBotToken' not in json_data and 'telegramChatId' not in json_data:
+            return {'status': 'error', 'message': 'No data provided'}, 400
+
+        if 'discordWebhookUrl' in json_data:
+            discord_webhook_url = json_data['discordWebhookUrl']
+            integrations_collection.replace_one({'type': 'discord'}, {'type': 'discord', 'details': {
+                'discordWebhookUrl': discord_webhook_url}}, upsert=True)
+
+        if 'telegramBotToken' in json_data and 'telegramChatId' in json_data:
+            telegram_bot_token = json_data['telegramBotToken']
+            telegram_chat_id = json_data['telegramChatId']
+            integrations_collection.replace_one({'type': 'telegram'}, {'type': 'telegram', 'details': {
+                'telegramBotToken': telegram_bot_token, 'telegramChatId': telegram_chat_id}}, upsert=True)
+
+        load_notification_config(integrations_collection)
+
+        return {'status': 'ok'}
 
 
 class HealthCheck(Resource):
@@ -332,6 +390,8 @@ api.add_resource(UpdateDevice, '/device/<string:mac_addr>/update')
 
 api.add_resource(Protection, '/protection')
 api.add_resource(DnsStats, '/dns_stats')
+
+api.add_resource(Integrations, '/integrations')
 
 api.add_resource(HealthCheck, '/health_check')
 
