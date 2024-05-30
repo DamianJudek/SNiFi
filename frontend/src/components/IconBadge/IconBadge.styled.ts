@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { LabelBold } from "../../styles/typography";
+import { LabelSmallBold } from "../../styles/typography";
 import { PaletteKeys } from "../../styles/theme/palette";
 
 interface StyledPillProps {
@@ -24,5 +24,5 @@ export const Pill = styled.span<StyledPillProps>`
 `;
 
 export const Text = styled.span`
-  ${LabelBold};
+  ${LabelSmallBold};
 `;

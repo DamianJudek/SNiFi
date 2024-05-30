@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { Link } from "react-router-dom";
 import { H1 } from "../../styles/typography";
 
 export const StyledHeader = styled.header`
@@ -8,6 +9,14 @@ export const StyledHeader = styled.header`
   padding: ${({ theme }) => `${theme.spacing.small} ${theme.spacing.large}`};
   width: 100%;
   background-color: ${({ theme }) => theme.palette.lightBlack};
+`;
+
+export const StyledLink = styled(Link)`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-right: auto;
+  text-decoration: none;
 `;
 
 export const Logo = styled.i`

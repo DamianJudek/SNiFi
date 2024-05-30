@@ -35,3 +35,39 @@ export const updateDevice = (
 
 export const getDnsStats = () =>
   fetch(`${apiBase}/dns_stats`, { method: "GET" });
+
+export const getIntegrations = () =>
+  fetch(`${apiBase}/integrations`, { method: "GET" });
+
+type SetIntegrationsBody = {
+  discordWebhookUrl?: undefined | string;
+  telegramBotToken?: undefined | string;
+  telegramChatId?: undefined | string;
+};
+
+export const setIntegrations = async (
+  webhook: string,
+  botToken: string,
+  chatId: string
+) => {
+  const body: SetIntegrationsBody = {};
+  if (webhook !== undefined) {
+    body.discordWebhookUrl = webhook;
+  }
+
+  if (botToken !== undefined) {
+    body.telegramBotToken = botToken;
+  }
+
+  if (chatId !== undefined) {
+    body.telegramChatId = chatId;
+  }
+
+  return fetch(`${apiBase}/integrations`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+};
+
+export const getNotifications = () =>
+  fetch(`${apiBase}/notifications`, { method: "GET" });

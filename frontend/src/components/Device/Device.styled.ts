@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { LabelBold, SmallInfo } from "../../styles/typography";
+import { LabelSmallBold, SmallInfo } from "../../styles/typography";
 
 export const Row = styled.div`
   position: relative;
@@ -22,7 +22,7 @@ export const Info = styled.div`
 `;
 
 export const Name = styled.div`
-  ${LabelBold};
+  ${LabelSmallBold};
 `;
 
 export const Ip = styled.div`
