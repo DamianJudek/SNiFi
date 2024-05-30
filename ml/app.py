@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 app = Flask(__name__)
+CORS(app)
 swagger = Swagger(app, template={
     "info": {
         "title": "SNiFi ML API",
