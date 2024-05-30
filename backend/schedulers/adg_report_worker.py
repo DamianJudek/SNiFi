@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import uuid
 from datetime import datetime
 
 from adguardhome import AdGuardHome as Adg
@@ -29,6 +30,7 @@ def check_blocked_queries(db: Database):
 
         notification_collection.insert_one(
             {
+                'uid': str(uuid.uuid4()),
                 'type': 'blocked_query',
                 'severity': 5,
                 'query': query['question']['name'],

@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -57,6 +58,7 @@ def new_device_detected(devices_collection: Collection, notifications_collection
 
     notifications_collection.insert_one(
         {
+            'uid': str(uuid.uuid4()),
             'type': 'new_device',
             'severity': 3,
             'device': {
@@ -78,6 +80,7 @@ def update_existing_device(devices_collection: Collection, notifications_collect
         logger.info(f'IP address of device {mac} changed from {device["ip"]} to {ip}')
         notifications_collection.insert_one(
             {
+                'uid': str(uuid.uuid4()),
                 'type': 'ip_change',
                 'severity': 1,
                 'device': {
@@ -95,6 +98,7 @@ def update_existing_device(devices_collection: Collection, notifications_collect
         logger.info(f'Device {mac} went offline')
         notifications_collection.insert_one(
             {
+                'uid': str(uuid.uuid4()),
                 'type': 'device_offline',
                 'severity': 2,
                 'device': {

@@ -36,6 +36,7 @@ swagger = Swagger(app, template={
         {"name": "scans", "description": "Network scan management"},
         {"name": "dns", "description": "Dns proxy management"},
         {"name": "integrations", "description": "Integration management"},
+        {"name": "notifications", "description": "Threat notifications"},
         {"name": "other", "description": "Miscellaneous"}
     ],
 })
@@ -50,6 +51,7 @@ scan_status_collection = db['scan_status']
 scan_result_collection = db['scan_result']
 device_collection = db['devices']
 integrations_collection = db['integrations']
+notification_collection = db['notifications']
 
 load_notification_config(integrations_collection)
 
@@ -391,6 +393,51 @@ class Integrations(Resource):
         return {'status': 'ok'}
 
 
+class Notifications(Resource):
+    def get(self):
+        """
+        Gets the list of notifications divided into new and old
+        ---
+        tags:
+          - notifications
+        responses:
+            200:
+                description: Notifications response
+        """
+
+        new = list(notification_collection.find(
+            {
+                'seen': False
+            },
+            {'_id': False}
+        ))
+        old = list(notification_collection.find(
+            {
+                'seen': True
+            },
+            {'_id': False}
+        ).limit(20))
+
+        return {'new': new, 'old': old}
+
+
+class NotificationSeen(Resource):
+    def post(self, uid: str):
+        """
+        Marks a notification as seen
+        ---
+        tags:
+          - notifications
+        responses:
+            200:
+                description: Notification marked as seen
+        """
+        result = notification_collection.update_one({'uid': uid}, {'$set': {'seen': True}})
+        if result.matched_count == 0:
+            return {'status': 'error', 'message': 'Notification not found'}, 404
+        return {'status': 'ok'}
+
+
 class HealthCheck(Resource):
     def get(self):
         """
@@ -416,6 +463,9 @@ api.add_resource(DnsStats, '/dns_stats')
 api.add_resource(DnsQueries, '/dns_queries')
 
 api.add_resource(Integrations, '/integrations')
+
+api.add_resource(Notifications, '/notifications')
+api.add_resource(NotificationSeen, '/notification_seen/<string:uid>')
 
 api.add_resource(HealthCheck, '/health_check')
 
