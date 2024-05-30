@@ -35,3 +35,36 @@ export const updateDevice = (
 
 export const getDnsStats = () =>
   fetch(`${apiBase}/dns_stats`, { method: "GET" });
+
+export const getIntegrations = () =>
+  fetch(`${apiBase}/integrations`, { method: "GET" });
+
+type SetIntegrationsBody = {
+  webhook?: undefined | string;
+  botToken?: undefined | string;
+  chatId?: undefined | string;
+};
+
+export const setIntegrations = (
+  webhook: string,
+  botToken: string,
+  chatId: string
+) => {
+  const body: SetIntegrationsBody = {};
+  if (webhook !== undefined) {
+    body.webhook = webhook;
+  }
+
+  if (botToken !== undefined) {
+    body.botToken = botToken;
+  }
+
+  if (chatId !== undefined) {
+    body.chatId = chatId;
+  }
+
+  return fetch(`${apiBase}/integrations`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+};
