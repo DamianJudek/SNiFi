@@ -4,6 +4,7 @@ import joblib
 import subprocess
 import logging
 import pandas as pd
+import threading
 
 from flask import Flask, request, jsonify
 from flasgger import Swagger
@@ -18,7 +19,7 @@ from utils.feature_extraction import Feature_extraction
 load_dotenv()
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 app = Flask(__name__)
 swagger = Swagger(app, template={
@@ -32,6 +33,7 @@ swagger = Swagger(app, template={
 })
 
 executor = ThreadPoolExecutor(max_workers=4)
+lock = threading.Lock()
 
 model_path = os.getenv("MODEL_PATH", "models/RF_model_v1.1.0.pkl")
 columns_path = os.getenv("COLUMNS_PATH", "models/feature_columns.pkl")
@@ -80,8 +82,14 @@ def process_pcap(file_path, scan_id):
         logger.info(f"Processing PCAP file: {file_path}")
         processing_status_collection.update_one({"scan_id": scan_id}, {"$set": {"status": "processing"}})
 
-        split_directory = 'split_temp/'
-        destination_directory = 'output/'
+        split_directory = f'split_temp/{scan_id}'
+        destination_directory = f'output/{scan_id}'
+        
+        os.makedirs(split_directory, exist_ok=True)
+        os.chmod(split_directory, 0o777)
+        os.makedirs(destination_directory, exist_ok=True)
+        os.chmod(destination_directory, 0o777)
+        
         subprocess.run(['tcpdump', '-r', file_path, '-w', os.path.join(split_directory, 'split'), '-C', '10'], check=True)
 
         subfiles = os.listdir(split_directory)
@@ -108,8 +116,12 @@ def process_pcap(file_path, scan_id):
         full_processed_file_path = os.path.join("processed", os.path.basename(file_path) + ".csv")
         merge_csv_files(destination_directory, full_processed_file_path)
 
-        for cf in os.listdir(destination_directory):
-            os.remove(os.path.join(destination_directory, cf))
+        with lock:
+            for cf in os.listdir(destination_directory):
+                os.remove(os.path.join(destination_directory, cf))
+
+        os.rmdir(split_directory)
+        os.rmdir(destination_directory)
 
         processing_status_collection.update_one({"scan_id": scan_id}, {"$set": {"status": "processed"}})
         submit_for_prediction(full_processed_file_path, scan_id)
@@ -135,15 +147,13 @@ def submit_for_prediction(processed_file_path, scan_id):
         confidence_levels = model.predict_proba(data[feature_columns])
         confidence_for_class = confidence_levels.max(axis=1)
 
-        logger.info(f"Raw predictions: {predictions}")
-        mapped_predictions = [label_mapping.get(int(pred), "Unknown") for pred in predictions]
+        predictions = predictions.tolist()
         confidence_for_class = confidence_for_class.tolist()
 
         prediction_data = {
             "scan_id": scan_id,
-            "predictions": [{"prediction": pred, "confidence": float(conf)} for pred, conf in zip(mapped_predictions, confidence_for_class)]
+            "predictions": [{"prediction": label_mapping[int(pred)], "confidence": float(conf)} for pred, conf in zip(predictions, confidence_for_class)]
         }
-        
         predictions_collection.insert_one(prediction_data)
         logger.info(f"Predictions saved for scan_id: {scan_id}")
     except Exception as e:
