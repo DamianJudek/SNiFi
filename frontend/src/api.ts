@@ -1,6 +1,8 @@
-const apiBase = "http://localhost:5000";
+const backendBase = "http://localhost:5000";
+const mlBase = "http://localhost:5001";
 
-export const getDevices = () => fetch(`${apiBase}/devices`, { method: "GET" });
+export const getDevices = () =>
+  fetch(`${backendBase}/devices`, { method: "GET" });
 
 type UpdateDeviceBody = {
   isNew?: undefined | boolean;
@@ -27,17 +29,17 @@ export const updateDevice = (
     body.isBlocked = isBlocked;
   }
 
-  return fetch(`${apiBase}/device/${mac}/update`, {
+  return fetch(`${backendBase}/device/${mac}/update`, {
     method: "PUT",
     body: JSON.stringify(body),
   });
 };
 
 export const getDnsStats = () =>
-  fetch(`${apiBase}/dns_stats`, { method: "GET" });
+  fetch(`${backendBase}/dns_stats`, { method: "GET" });
 
 export const getIntegrations = () =>
-  fetch(`${apiBase}/integrations`, { method: "GET" });
+  fetch(`${backendBase}/integrations`, { method: "GET" });
 
 type SetIntegrationsBody = {
   discordWebhookUrl?: undefined | string;
@@ -63,11 +65,31 @@ export const setIntegrations = async (
     body.telegramChatId = chatId;
   }
 
-  return fetch(`${apiBase}/integrations`, {
+  return fetch(`${backendBase}/integrations`, {
     method: "POST",
     body: JSON.stringify(body),
   });
 };
 
 export const getNotifications = () =>
-  fetch(`${apiBase}/notifications`, { method: "GET" });
+  fetch(`${backendBase}/notifications`, { method: "GET" });
+
+export const sendPcapFile = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return fetch(`${mlBase}/predict`, {
+    method: "POST",
+    body: formData,
+  });
+};
+
+export const getPredictStatus = async (scanId: string) =>
+  fetch(`${mlBase}/predict/${scanId}`, {
+    method: "GET",
+  });
+
+export const getPredictResult = async (scanId: string) =>
+  fetch(`${mlBase}/predict/result/${scanId}`, {
+    method: "GET",
+  });
