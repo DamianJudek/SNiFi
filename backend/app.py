@@ -13,10 +13,11 @@ from flask_restful import Api, Resource, reqparse
 from nmap import PortScannerError
 from pymongo import MongoClient
 
-from util.iputil import get_default_gateway_ip
-from daemon.notification_daemon import load_notification_config
 from daemon.device_daemon import update_devices_with_scan_result
 from daemon.discovery_daemon import discovery_scan
+from daemon.notification_daemon import load_notification_config
+from schedulers.scheduler_manager import init_schedulers
+from util.iputil import get_default_gateway_ip
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -417,6 +418,8 @@ api.add_resource(DnsQueries, '/dns_queries')
 api.add_resource(Integrations, '/integrations')
 
 api.add_resource(HealthCheck, '/health_check')
+
+init_schedulers(db)
 
 logger.info("SNiFi has started successfully!")
 
