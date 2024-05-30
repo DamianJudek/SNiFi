@@ -1,88 +1,105 @@
-import { useState } from "react";
-import { FileUploader } from "react-drag-drop-files";
-import Button from "../Button/Button";
-import {
-  Container,
-  Header,
-  FileUploaderWrapper,
-  StyledAlert,
-  Icon,
-  Info,
-  InfoButton,
-  FileAnnounce,
-  FileName,
-} from "./ManualScan.styled";
-import fileIcon from "../../assets/icons/fileSearch.svg";
+import { useState, useEffect } from "react";
+import useAlert from "../../hooks/useAlert";
+import { sendPcapFile, getPredictStatus, getPredictResult } from "../../api";
+import DragAndDrop from "../DragAndDrop/DragAndDrop";
+import { CircularLoader } from "../Loader/Loader";
+import { Container } from "./ManualScan.styled";
 
-const fileTypes = ["PCAP", "JPG", "PNG", "GIF"];
+const mockedResult = {
+  attackRatio: 0.9781151689235399,
+  averageConfidenceAttack: 0.8972898895259405,
+  averageConfidenceBenign: 0.5987500000000001,
+  finalDecision: "Attack",
+  scanId: "1cd5fe5a-3159-49d5-b699-274b11487a88",
+  totalPredictions: 7311,
+};
 
 const ManualScan = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [extensionError, setExtensionError] = useState<boolean>(false);
-  const [sizeError, setSizeError] = useState<boolean>(false);
+  const [currentScanId, setCurrentScanId] = useState<string>("");
+  const [scanning, setScanning] = useState<boolean>(false);
+  const [result, setResult] = useState(mockedResult);
+  const [showAlert, Alert] = useAlert({});
 
-  const handleChange = (file: File) => {
-    setFile(file);
-    setExtensionError(false);
-    setSizeError(false);
+  const scanFile = () => {
+    console.log("scanFile");
+    sendPcapFile(file!)
+      .then((res) => {
+        if (res.status === 202) {
+          return res.json();
+        }
+        throw res.json();
+      })
+      .then((res) => {
+        setCurrentScanId(res.scanId);
+        setScanning(true);
+        showAlert("File uploaded succesfully", "success");
+      })
+
+      .catch((err) => {
+        console.error("Error fetching notifications", err);
+        showAlert("Error fetching notifications", "error");
+      });
   };
 
-  const handleTypeError = () => setExtensionError(true);
+  const getStatus = () => {
+    console.log("getStatus");
 
-  const handleSizeError = () => setSizeError(true);
+    getPredictStatus(currentScanId)
+      .then((res) => {
+        if (res.status === 200) {
+          return res.json();
+        }
+        throw res.json();
+      })
+      .then((res) => {
+        setCurrentScanId(res.scanId);
+        setScanning(true);
 
-  const DragAndDropContent = (
-    <>
-      {extensionError && (
-        <StyledAlert severity="error" variant="outlined">
-          Wrong file extension. Allowed: {fileTypes.join(", ")}
-        </StyledAlert>
-      )}
-      {sizeError && (
-        <StyledAlert severity="error" variant="outlined">
-          The file should be less than 10MB
-        </StyledAlert>
-      )}
-      <Icon src={fileIcon} />
-      <Info>
-        <InfoButton>Choose a file</InfoButton> or drag it here
-      </Info>
-    </>
-  );
+        if (!res.inProgress && res.status === "processed") {
+          getResult();
+          setScanning(false);
+          showAlert("File processed succesfully", "success");
+        } else if (res.inProgress) {
+          setTimeout(getStatus, 500);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching notifications", err);
+        showAlert("Error fetching notifications", "error");
+      });
+  };
 
-  const fallbackFileName = "<not selected>";
+  const getResult = () => {
+    console.log("getResult");
+    getPredictResult(currentScanId)
+      .then((res) => {
+        if (res.status === 200) {
+          return res.json();
+        }
+        throw res.json();
+      })
+      .then((res) => {
+        console.log("Predict result fetched", res);
+        setResult(res);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch predict result", err);
+        showAlert("Failed to fetch predict result", "error");
+      });
+  };
 
-  const buttonDisabled = extensionError || sizeError || !file;
+  useEffect(() => {
+    if (currentScanId && scanning) {
+      getStatus();
+    }
+  }, [currentScanId, scanning]);
 
   return (
     <Container>
-      <Header>
-        <FileAnnounce>
-          File name: <FileName>{file?.name ?? fallbackFileName}</FileName>
-        </FileAnnounce>
-        <Button disabled={buttonDisabled}>Scan</Button>
-      </Header>
-      <FileUploaderWrapper>
-        <FileUploader
-          handleChange={handleChange}
-          name="pcap file form"
-          label="send pcap file to scan"
-          hoverTitle="Drop here"
-          types={fileTypes}
-          maxSize={10}
-          minSize={0}
-          onTypeError={handleTypeError}
-          onSizeError={handleSizeError}
-          children={DragAndDropContent}
-          dropMessageStyle={{
-            backgroundColor: "#51878a",
-            color: "#fff",
-            fontFamily: "Roboto",
-            opacity: 0.8,
-            fontWeight: 400,
-          }}
-        />
-      </FileUploaderWrapper>
+      {scanning && <CircularLoader />}
+      <DragAndDrop file={file} setFile={setFile} scanFile={scanFile} />
+      {Alert}
     </Container>
   );
 };
