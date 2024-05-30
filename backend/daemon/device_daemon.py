@@ -13,6 +13,7 @@ def update_devices_with_scan_result(db: Database, scanId: str):
     logger.info(f'Updating devices collection after {scanId} scan result')
 
     devices_collection = db['devices']
+    notifications_collection = db["notifications"]
     previous_devices = [device for device in devices_collection.find({})]
     previous_devices_macs = [device['mac'] for device in previous_devices]
 
@@ -33,7 +34,7 @@ def update_devices_with_scan_result(db: Database, scanId: str):
     logger.info('Devices collection updated')
 
 
-def new_device_detected(devices_collection: Collection, ip: str, mac: str, scanId: str, timestamp: str):
+def new_device_detected(devices_collection: Collection, notifications_collection: Collection, ip: str, mac: str, scanId: str, timestamp: str):
     logger.info(f'New device detected: {ip}, {mac}')
 
     devices_collection.insert_one(
@@ -54,8 +55,56 @@ def new_device_detected(devices_collection: Collection, ip: str, mac: str, scanI
         }
     )
 
+    notifications_collection.insert_one(
+        {
+            'type': 'new_device',
+            'severity': 3,
+            'device': {
+                'name': None,
+                'mac': mac,
+                'ip': ip
+            },
+            'scanId': scanId,
+            'timestamp': timestamp
+        }
+    )
 
-def update_existing_device(devices_collection: Collection, ip: str, mac: str, scanId: str, timestamp: str, available: bool = True):
+
+def update_existing_device(devices_collection: Collection, notifications_collection: Collection, ip: str, mac: str, scanId: str, timestamp: str, available: bool = True):
+    device = devices_collection.find_one({'mac': mac})
+
+    if available and device['ip'] != ip:
+        logger.info(f'IP address of device {mac} changed from {device["ip"]} to {ip}')
+        notifications_collection.insert_one(
+            {
+                'type': 'ip_change',
+                'severity': 1,
+                'device': {
+                    'name': device['name'],
+                    'mac': mac,
+                    'ip': ip
+                },
+                'scanId': scanId,
+                'timestamp': timestamp
+            }
+        )
+
+    if device['availability'][-1]['available'] and not available:
+        logger.info(f'Device {mac} went offline')
+        notifications_collection.insert_one(
+            {
+                'type': 'device_offline',
+                'severity': 2,
+                'device': {
+                    'name': device['name'],
+                    'mac': mac,
+                    'ip': ip
+                },
+                'scanId': scanId,
+                'timestamp': timestamp
+            }
+        )
+
     devices_collection.update_one(
         {'mac': mac},
         {

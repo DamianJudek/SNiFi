@@ -18,7 +18,9 @@ from daemon.notification_daemon import load_notification_config
 from daemon.device_daemon import update_devices_with_scan_result
 from daemon.discovery_daemon import discovery_scan
 
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+logger.info("Initializing SNiFi...")
 
 app = Flask(__name__)
 CORS(app)
@@ -396,6 +398,8 @@ api.add_resource(DnsStats, '/dns_stats')
 api.add_resource(Integrations, '/integrations')
 
 api.add_resource(HealthCheck, '/health_check')
+
+logger.info("SNiFi has started successfully!")
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
