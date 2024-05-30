@@ -64,7 +64,7 @@ services:
     volumes:
       - './ml/:/srv'
     healthcheck:
-      test: curl -f http://localhost:5001/health_check
+      test: curl -f http://localhost:5000/health_check
       interval: 1s
       timeout: 1s
       retries: 1000
