@@ -45,7 +45,7 @@ feature_columns = joblib.load(columns_path)
 scaler = joblib.load(scaler_path)
 
 client = MongoClient(mongo_url)
-db = client['snifi-predictions-db']
+db = client['snifi-db']
 predictions_collection = db['predictions']
 processing_status_collection = db['processing_status']
 
