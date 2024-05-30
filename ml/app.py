@@ -38,7 +38,7 @@ lock = threading.Lock()
 model_path = os.getenv("MODEL_PATH", "models/RF_model_v1.1.0.pkl")
 columns_path = os.getenv("COLUMNS_PATH", "models/feature_columns.pkl")
 scaler_path = os.getenv("SCALER_PATH", "models/scaler.pkl")
-mongo_url = os.getenv("MONGO_URL", "mongodb://localhost:27017/")
+mongo_url = os.getenv("MONGO_URL", "mongodb://mongodb:27017/")
 
 model = joblib.load(model_path)
 feature_columns = joblib.load(columns_path)
