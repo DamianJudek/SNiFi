@@ -321,10 +321,29 @@ class DnsStats(Resource):
             "protection_enabled": await adg.protection_enabled(),
             "stats_period": await stats.period(),
             "dns_queries": await stats.dns_queries(),
+            "blocked_queries": await stats.blocked_filtering(),
             "blocked_percentage": await stats.blocked_percentage(),
             "active_rules": await adg.filtering.rules_count(allowlist=False)
         }
         return summary
+
+
+class DnsQueries(Resource):
+    def get(self):
+        """
+        Get list of blocked malicious DNS queries
+        ---
+        tags:
+          - dns
+        responses:
+            200:
+                description: list of malicious dns proxy queries
+        """
+        return asyncio.run(self.get_queries())
+
+    async def get_queries(self):
+        adg = Adg('localhost', port=8080, username='admin', password='password')
+        return await adg.request('querylog', params={'response_status': 'blocked'})
 
 
 class Integrations(Resource):
@@ -393,17 +412,11 @@ api.add_resource(UpdateDevice, '/device/<string:mac_addr>/update')
 
 api.add_resource(Protection, '/protection')
 api.add_resource(DnsStats, '/dns_stats')
+api.add_resource(DnsQueries, '/dns_queries')
 
 api.add_resource(Integrations, '/integrations')
 
 api.add_resource(HealthCheck, '/health_check')
-
-class Debug(Resource):
-    def get(self):
-        update_devices_with_scan_result(db, 'b9c6f273-c89d-4051-b9b4-00eba444f610')
-        return {'status': 'ok'}
-
-api.add_resource(Debug, '/debug')
 
 logger.info("SNiFi has started successfully!")
 
