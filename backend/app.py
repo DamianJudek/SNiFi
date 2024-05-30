@@ -13,6 +13,7 @@ from nmap import PortScannerError
 from pymongo import MongoClient
 
 from util.iputil import get_default_gateway_ip
+from daemon.notification_daemon import load_notification_config
 from daemon.device_daemon import update_devices_with_scan_result
 from daemon.discovery_daemon import discovery_scan
 
@@ -44,6 +45,8 @@ scan_status_collection = db['scan_status']
 scan_result_collection = db['scan_result']
 device_collection = db['devices']
 integrations_collection = db['integrations']
+
+load_notification_config(integrations_collection)
 
 scan_status_collection.delete_many({'status': 'running'})
 
@@ -278,7 +281,8 @@ class Protection(Resource):
         """
 
         parser = reqparse.RequestParser()
-        parser.add_argument('enable', type=lambda x: x.lower() == 'true', required=True, help='Enable or disable protection',
+        parser.add_argument('enable', type=lambda x: x.lower() == 'true', required=True,
+                            help='Enable or disable protection',
                             location='args')
         args = parser.parse_args()
 
@@ -310,6 +314,7 @@ class DnsStats(Resource):
         adg = Adg('localhost', port=8080, username='admin', password='password')
         stats = adg.stats
         summary = {
+            "protection_enabled": await adg.protection_enabled(),
             "stats_period": await stats.period(),
             "dns_queries": await stats.dns_queries(),
             "blocked_percentage": await stats.blocked_percentage(),
@@ -318,21 +323,20 @@ class DnsStats(Resource):
         return summary
 
 
-class HealthCheck(Resource):
+class Integrations(Resource):
     def get(self):
         """
-        Health check endpoint
+        Gets the current integrations config
         ---
         tags:
-          - other
+          - integrations
         responses:
             200:
-                description: Health check response
+                description: Integrations response
         """
-        return {'status': 'ok'}
 
+        return list(integrations_collection.find({}, {'_id': False}))
 
-class Integrations(Resource):
     def post(self):
         """
         Updates either discord bot token or telegram bot token and chatId
@@ -350,13 +354,31 @@ class Integrations(Resource):
 
         if 'discordWebhookUrl' in json_data:
             discord_webhook_url = json_data['discordWebhookUrl']
-            integrations_collection.replace_one({'type': 'discord'}, {'type': 'discord', 'details': {'discordWebhookUrl': discord_webhook_url}}, upsert=True)
+            integrations_collection.replace_one({'type': 'discord'}, {'type': 'discord', 'details': {
+                'discordWebhookUrl': discord_webhook_url}}, upsert=True)
 
         if 'telegramBotToken' in json_data and 'telegramChatId' in json_data:
             telegram_bot_token = json_data['telegramBotToken']
             telegram_chat_id = json_data['telegramChatId']
-            integrations_collection.replace_one({'type': 'telegram'}, {'type': 'telegram', 'details': {'telegramBotToken': telegram_bot_token, 'telegramChatId': telegram_chat_id}}, upsert=True)
+            integrations_collection.replace_one({'type': 'telegram'}, {'type': 'telegram', 'details': {
+                'telegramBotToken': telegram_bot_token, 'telegramChatId': telegram_chat_id}}, upsert=True)
 
+        load_notification_config(integrations_collection)
+
+        return {'status': 'ok'}
+
+
+class HealthCheck(Resource):
+    def get(self):
+        """
+        Health check endpoint
+        ---
+        tags:
+          - other
+        responses:
+            200:
+                description: Health check response
+        """
         return {'status': 'ok'}
 
 
