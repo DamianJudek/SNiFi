@@ -4,6 +4,7 @@ import Header from "../components/Header/Header";
 import Home from "./Home/Home";
 import Design from "./Design/Design";
 import Settings from "./Settings/Settings";
+import Notifications from "./Notifications/Notifications";
 
 const RouterContainer = () => {
   return (
@@ -15,6 +16,7 @@ const RouterContainer = () => {
             <Route path="/" element={<Home />} />
             <Route path="design" element={<Design />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="notifications" element={<Notifications />} />
           </Routes>
         </Layout>
       </BrowserRouter>

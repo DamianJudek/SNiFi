@@ -1,5 +1,5 @@
 import UserMenu from "../UserMenu/UserMenu";
-import Notifications from "../Notifications/Notifications";
+import Notifications from "../NotificationIcon/NotificationIcon";
 import { StyledHeader, StyledLink, Logo, Heading } from "./Header.styled";
 
 const Header = () => {
