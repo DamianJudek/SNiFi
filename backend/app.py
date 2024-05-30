@@ -338,8 +338,7 @@ class Integrations(Resource):
             200:
                 description: Integrations response
         """
-
-        return list(integrations_collection.find({}, {'_id': False}))
+        return {item['type']: item['details'] for item in list(integrations_collection.find({}, {'_id': False}))}
 
     def post(self):
         """
