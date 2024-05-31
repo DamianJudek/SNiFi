@@ -76,6 +76,12 @@ def merge_csv_files(destination_directory, output_file_path):
         except Exception as e:
             logger.error(f"Error merging CSV file {f}: {e}")
 
+def send_to_discord(message):
+  logger.info(f"Sending to Discord: {message}")
+
+def send_to_telegram(message):
+  logger.info(f"Sending to Telegram: {message}")
+
 def process_pcap(file_path, scan_id):
     try:
         logger.info(f"Processing PCAP file: {file_path}")
@@ -145,6 +151,11 @@ def submit_for_prediction(processed_file_path, scan_id):
         }
         predictions_collection.insert_one(prediction_data)
         logger.info(f"Predictions saved for scan_id: {scan_id}")
+        
+        if final_decision == "Attack":
+          message = f"Scan ID: {scan_id}, Final Decision: {final_decision}"
+          send_to_discord(message)
+          send_to_telegram(message)
         
         del data
     except Exception as e:
