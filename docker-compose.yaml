@@ -8,20 +8,6 @@ services:
       interval: 1s
       timeout: 1s
       retries: 1000
-  adg:
-    image: 'adguard/adguardhome:latest'
-    ports:
-      - '53:53/tcp'
-      - '53:53/udp'
-      - '8080:80'
-    volumes:
-      - './adg/workdir:/opt/adguardhome/work'
-      - './adg/confdir:/opt/adguardhome/conf'
-    healthcheck:
-      test: [ "CMD", "wget", "http://127.0.0.1:80", "-qO", "/dev/null" ]
-      interval: 1s
-      timeout: 1s
-      retries: 1000
   backend:
     build: 'backend'
     depends_on:
@@ -40,16 +26,17 @@ services:
     cap_add:
       - NET_ADMIN
       - NET_RAW
-  frontend:
-    build: 'frontend'
+  adg:
+    image: 'adguard/adguardhome:latest'
     ports:
-      - '80:8000'
+      - '53:53/tcp'
+      - '53:53/udp'
+      - '8080:80'
     volumes:
-      - './frontend/:/srv'
-      - '/srv/node_modules'
-      - '/srv/dist'
+      - './adg/workdir:/opt/adguardhome/work'
+      - './adg/confdir:/opt/adguardhome/conf'
     healthcheck:
-      test: curl -f http://0.0.0.0:8000/
+      test: [ "CMD", "wget", "http://127.0.0.1:80", "-qO", "/dev/null" ]
       interval: 1s
       timeout: 1s
       retries: 1000
@@ -72,3 +59,16 @@ services:
     cap_add:
       - NET_ADMIN
       - NET_RAW
+  frontend:
+    build: 'frontend'
+    ports:
+      - '80:8000'
+    volumes:
+      - './frontend/:/srv'
+      - '/srv/node_modules'
+      - '/srv/dist'
+    healthcheck:
+      test: curl -f http://0.0.0.0:8000/
+      interval: 1s
+      timeout: 1s
+      retries: 1000
