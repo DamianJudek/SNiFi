@@ -48,7 +48,7 @@ db = client['snifi-db']
 predictions_collection = db['predictions']
 processing_status_collection = db['processing_status']
 
-directories = ["uploads/manual", "uploads/auto", "processed", "split_temp", "output"]
+directories = ["uploads/processed", "uploads/auto", "processed", "split_temp", "output"]
 for directory in directories:
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -100,7 +100,9 @@ def process_pcap(file_path, scan_id):
         
         processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "processed"}})
         submit_for_prediction(full_processed_file_path, scan_id)
-
+        
+        os.remove(file_path)
+        logger.info(f"Removed file: {file_path}")
     except Exception as e:
         logger.exception(f"Error processing PCAP file: {e}")
         processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "error", "error": str(e)}})
@@ -143,10 +145,16 @@ def submit_for_prediction(processed_file_path, scan_id):
         }
         predictions_collection.insert_one(prediction_data)
         logger.info(f"Predictions saved for scan_id: {scan_id}")
+        
+        del data
     except Exception as e:
         logger.exception(f"Error in prediction: {e}")
         processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "error", "error": str(e)}})
-      
+    finally:
+        if os.path.exists(processed_file_path):
+            os.remove(processed_file_path)
+            logger.info(f"Removed processed file: {processed_file_path}")
+
 @app.route('/predict', methods=['POST'])
 def predict():
     """
@@ -177,7 +185,7 @@ def predict():
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
-    file_path = os.path.join("uploads/manual", file.filename)
+    file_path = os.path.join("uploads/processed", file.filename)
     file.save(file_path)
 
     if not os.path.exists(file_path):

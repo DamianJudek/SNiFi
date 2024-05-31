@@ -3,8 +3,10 @@ import time
 import requests
 import logging
 import subprocess
+
 from queue import Queue
 from threading import Thread
+
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -49,16 +51,17 @@ class PcapFileHandler(FileSystemEventHandler):
             
             for split_file in split_files:
                 split_file_path = os.path.join(split_output_dir, split_file)
-                self.queue.put(split_file_path)
+                self.queue.put((split_file_path, file_path))
                 logger.info(f"File {split_file_path} added to the queue for processing")
         except Exception as e:
             logger.exception(f"Error splitting PCAP file: {e}")
 
 def file_processor(queue, endpoint_url):
     while True:
-        file_path = queue.get()
-        if file_path is None:
+        item = queue.get()
+        if item is None:
             break
+        file_path, original_file_path = item
         try:
             logger.info(f"Processing file from queue: {file_path}")
             with open(file_path, "rb") as file:
@@ -66,12 +69,24 @@ def file_processor(queue, endpoint_url):
                 response = requests.post(endpoint_url, files=files)
                 if response.status_code == 202:
                     logger.info(f"File {file_path} processed successfully")
+                    os.remove(file_path)
+                    logger.info(f"Removed file: {file_path}")
                 else:
                     logger.error(f"Failed to send file {file_path} for prediction: {response.status_code} - {response.content}")
         except Exception as e:
             logger.exception(f"Error sending file for prediction: {e}")
         finally:
             queue.task_done()
+        
+        parent_dir = os.path.dirname(file_path)
+        if not os.listdir(parent_dir):
+            os.rmdir(parent_dir)
+            logger.info(f"Removed directory: {parent_dir}")
+
+        if not os.listdir(split_dir):
+            if os.path.exists(original_file_path):
+                os.remove(original_file_path)
+                logger.info(f"Removed original file: {original_file_path}")
 
 def monitor_directory(upload_dir, endpoint_url, split_dir):
     queue = Queue()
