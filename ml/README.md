@@ -64,10 +64,6 @@ If you prefer not to use Docker Compose, you can still set up and run the projec
 
 The trained model, characterized by the best prediction results, is wrapped in a Flask API and packaged in a Dockerfile. This allows for easy deployment and integration with other components of the SNiFi project.
 
-* To run the Flask API server, use the following command (after building the Docker image):
-    ```bash
-    docker run -d -p 5000:5000 snifi-ml
-    ```
 ---
 
 *Citation: E. C. P. Neto, S. Dadkhah, R. Ferreira, A. Zohourian, R. Lu, A. A. Ghorbani. "[CICIoT2023: A real-time dataset and benchmark for large-scale attacks in IoT environment](https://www.mdpi.com/1424-8220/23/13/5941)," Sensor (2023) – (submitted to Journal of Sensors).*
