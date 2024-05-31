@@ -1,7 +1,6 @@
 import os
 import uuid
 import joblib
-import subprocess
 import logging
 import pandas as pd
 import threading
@@ -11,8 +10,6 @@ from flask_cors import CORS
 from flasgger import Swagger
 from pymongo import MongoClient
 from concurrent.futures import ThreadPoolExecutor
-from tqdm import tqdm
-from multiprocessing import Process
 from dotenv import load_dotenv
 
 from utils.feature_extraction import Feature_extraction
@@ -51,7 +48,7 @@ db = client['snifi-db']
 predictions_collection = db['predictions']
 processing_status_collection = db['processing_status']
 
-directories = ["uploads", "processed", "split_temp", "output"]
+directories = ["uploads/manual", "uploads/auto", "processed", "split_temp", "output"]
 for directory in directories:
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -71,11 +68,11 @@ def process_split_file(subfile_path, processed_file_path):
 def merge_csv_files(destination_directory, output_file_path):
     csv_subfiles = os.listdir(destination_directory)
     mode = 'w'
-    for f in tqdm(csv_subfiles):
+    for f in csv_subfiles:
         try:
             d = pd.read_csv(os.path.join(destination_directory, f))
-            d.to_csv(output_file_path, header=mode=='w', index=False, mode=mode)
-            mode='a'
+            d.to_csv(output_file_path, header=(mode == 'w'), index=False, mode=mode)
+            mode = 'a'
         except Exception as e:
             logger.error(f"Error merging CSV file {f}: {e}")
 
@@ -84,47 +81,23 @@ def process_pcap(file_path, scan_id):
         logger.info(f"Processing PCAP file: {file_path}")
         processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "processing"}})
 
-        split_directory = f'split_temp/{scan_id}'
-        destination_directory = f'output/{scan_id}'
+        processed_dir = "processed"
+        if not os.path.exists(processed_dir):
+            os.makedirs(processed_dir)
+            os.chmod(processed_dir, 0o777)
         
-        os.makedirs(split_directory, exist_ok=True)
-        os.chmod(split_directory, 0o777)
-        os.makedirs(destination_directory, exist_ok=True)
-        os.chmod(destination_directory, 0o777)
+        processed_file_path = os.path.join(processed_dir, os.path.basename(file_path))
         
-        subprocess.run(['tcpdump', '-r', file_path, '-w', os.path.join(split_directory, 'split'), '-C', '10'], check=True)
+        feature_extractor = Feature_extraction()
+        logger.info(f"Extracting features from: {file_path} to: {processed_file_path}")
+        feature_extractor.pcap_evaluation(file_path, processed_file_path)
 
-        subfiles = os.listdir(split_directory)
-        logger.info(f"Split files: {subfiles}")
-        if not subfiles:
-            raise Exception("No split files generated.")
+        full_processed_file_path = processed_file_path + ".csv"
+        if not os.path.exists(full_processed_file_path):
+            raise Exception(f"Processed file {full_processed_file_path} not found.")
 
-        processes = []
-        for subfile in subfiles:
-            subpcap_file = os.path.join(split_directory, subfile)
-            processed_file_path = os.path.join(destination_directory, f"{subfile}.csv")
-            p = Process(target=process_split_file, args=(subpcap_file, processed_file_path))
-            p.start()
-            processes.append(p)
-
-        for p in processes:
-            p.join()
-
-        assert len(subfiles) == len(os.listdir(destination_directory)), "Mismatch in number of processed files."
-
-        for sf in subfiles:
-            os.remove(os.path.join(split_directory, sf))
-
-        full_processed_file_path = os.path.join("processed", os.path.basename(file_path) + ".csv")
-        merge_csv_files(destination_directory, full_processed_file_path)
-
-        with lock:
-            for cf in os.listdir(destination_directory):
-                os.remove(os.path.join(destination_directory, cf))
-
-        os.rmdir(split_directory)
-        os.rmdir(destination_directory)
-
+        logger.info(f"Processed file {full_processed_file_path} successfully created.")
+        
         processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "processed"}})
         submit_for_prediction(full_processed_file_path, scan_id)
 
@@ -173,11 +146,11 @@ def submit_for_prediction(processed_file_path, scan_id):
     except Exception as e:
         logger.exception(f"Error in prediction: {e}")
         processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "error", "error": str(e)}})
-
+      
 @app.route('/predict', methods=['POST'])
 def predict():
     """
-    Uploads a PCAP file for processing and prediction
+    Predicts the class of a PCAP file
     ---
     tags:
       - ml
@@ -191,7 +164,7 @@ def predict():
         description: The PCAP file to be processed
     responses:
       202:
-        description: Scan initiated successfully
+        description: Prediction initiated successfully
       400:
         description: Invalid input
       500:
@@ -204,9 +177,9 @@ def predict():
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
-    file_path = os.path.join("uploads", file.filename)
+    file_path = os.path.join("uploads/manual", file.filename)
     file.save(file_path)
-    
+
     if not os.path.exists(file_path):
         return jsonify({"error": "File not saved"}), 500
 

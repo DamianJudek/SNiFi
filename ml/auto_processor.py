@@ -94,7 +94,7 @@ def monitor_directory(upload_dir, endpoint_url, split_dir):
     worker.join()
 
 if __name__ == "__main__":
-    upload_dir = "uploads"
+    upload_dir = "uploads/auto"
     split_dir = "split_temp"
     endpoint_url = "http://localhost:5000/predict"
     
