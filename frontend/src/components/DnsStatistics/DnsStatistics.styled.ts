@@ -37,8 +37,15 @@ export const Name = styled.span`
   margin: 0 0 ${({ theme }) => theme.spacing.small} 0;
 `;
 
-export const Value = styled.span`
+type ValueProps = {
+  $warning: boolean;
+  $ok: boolean;
+};
+
+export const Value = styled.span<ValueProps>`
   ${H4};
   text-align: center;
   margin: 0;
+  ${({ theme, $ok }) => $ok && `color: ${theme.palette.green}`};
+  ${({ theme, $warning }) => $warning && `color: ${theme.palette.gold}`};
 `;
