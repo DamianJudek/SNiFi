@@ -11,7 +11,6 @@ export interface DeviceApiResponse {
   ip: string;
   isNew: boolean;
   isBlocked: boolean;
-  available: boolean;
   discoveredAt: string;
   availability: Availability;
 }

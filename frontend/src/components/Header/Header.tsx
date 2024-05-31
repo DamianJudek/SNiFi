@@ -1,4 +1,5 @@
-import UserMenu from "../UserMenu/UserMenu";
+import { Link } from "react-router-dom";
+import Icon from "../Icon/Icon";
 import Notifications from "../NotificationIcon/NotificationIcon";
 import { StyledHeader, StyledLink, Logo, Heading } from "./Header.styled";
 
@@ -10,7 +11,9 @@ const Header = () => {
         <Heading>SNiFi</Heading>
       </StyledLink>
       <Notifications />
-      <UserMenu />
+      <Link to="/settings" aria-label="Settings">
+        <Icon name="settings" />
+      </Link>
     </StyledHeader>
   );
 };

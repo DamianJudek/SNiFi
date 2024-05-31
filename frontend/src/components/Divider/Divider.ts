@@ -1,10 +1,6 @@
 import styled from "styled-components";
 import Divider from "@mui/material/Divider";
-import { SpacingKeys } from "../../styles/theme/spacing";
-
-type DividerProps = {
-  spacing?: SpacingKeys;
-};
+import { DividerProps } from "./Divider.interface";
 
 export const StyledDivider = styled(Divider)<DividerProps>`
   background-color: ${({ theme }) => theme.palette.white};

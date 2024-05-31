@@ -3,6 +3,8 @@ import { getDevices, updateDevice } from "../../api";
 import useAlert from "../../hooks/useAlert";
 import Divider from "../Divider/Divider";
 import Device from "../Device/Device";
+import CircularLoader from "../Loader/Loader";
+import { ConnectedDevicesApiResponse } from "./ConnectedDevices.interface";
 import {
   Contaienr,
   Top,
@@ -11,11 +13,10 @@ import {
   HeaderLabel,
   Content,
 } from "./ConnectedDevices.styled";
-import CircularLoader from "../Loader/Loader";
-// import { devicesApiMockedResponse } from "../apiMocks";
 
 const ConnectedDevices = () => {
-  const [detectedDevices, setDetectedDevices] = useState([]);
+  const [detectedDevices, setDetectedDevices] =
+    useState<ConnectedDevicesApiResponse>([]);
   const [showAlert, Alert] = useAlert({});
 
   const handleVerify = (mac: string, isNew: boolean) => {
@@ -71,16 +72,7 @@ const ConnectedDevices = () => {
   useEffect(fetchDevices, []);
 
   const devices = detectedDevices.map(
-    ({
-      mac,
-      name,
-      ip,
-      isBlocked,
-      isNew,
-      available,
-      discoveredAt,
-      availability,
-    }) => (
+    ({ mac, name, ip, isBlocked, isNew, discoveredAt, availability }) => (
       <Device
         key={ip}
         mac={mac}
@@ -88,7 +80,7 @@ const ConnectedDevices = () => {
         ip={ip}
         isNew={isNew}
         isBlocked={isBlocked}
-        available={available}
+        available={availability[0].available}
         availability={availability}
         handleVerify={handleVerify}
         handleBlock={handleBlock}

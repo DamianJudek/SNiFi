@@ -2,7 +2,7 @@ import Badge from "../Badge/Badge";
 import Switch from "../Switch/Switch";
 import AvailabilityBar from "../AvailabilityBar/AvailabilityBar";
 import IconBadge from "../IconBadge/IconBadge";
-import { DeviceProps } from "./Device.interfaces";
+import { DeviceProps } from "./Device.interface";
 import { mapLabel } from "./Device.function";
 import {
   Row,

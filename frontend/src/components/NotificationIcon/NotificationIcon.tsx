@@ -33,7 +33,7 @@ const Notifications = () => {
 
   return (
     <Wrapper>
-      <Link to="/notifications">
+      <Link to="/notifications" aria-label="Notifications">
         <Badge badgeContent={notificationsCount} color="primary">
           <Icon name="flag" />
         </Badge>
