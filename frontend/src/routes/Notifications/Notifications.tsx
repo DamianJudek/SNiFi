@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import useAlert from "../../hooks/useAlert";
-import { getNotifications } from "../../api";
-import {
-  Notification,
-  NotificationProps,
-} from "../../components/Notification/Notification";
+import { getNotifications, postNotificationSeen } from "../../api";
+import { NotificationProps } from "../../components/Notification/Notification.interface";
+import { Notification } from "../../components/Notification/Notification";
 import {
   Wrapper,
   Header,
@@ -35,17 +33,27 @@ const Notifications = () => {
         setNewNotifications(res.new);
         setOldNotifications(res.old);
       })
-
       .catch((err) => {
         console.error(err);
         showAlert("Error fetching notifications", "error");
       });
   };
 
-  const handleSeenClick = (id: string) => {
-    console.log("Notification ", id, " marked as seen");
-    fetchNotifications();
+  const handleSeenClick = (uid: string) => {
+    postNotificationSeen(uid)
+      .then((res) => {
+        if (res.status === 200) {
+          return true;
+        }
+        throw res.json();
+      })
+      .catch((err) => {
+        console.error("Error marking notification", err);
+        showAlert("Error marking notification", "error");
+      })
+      .finally(fetchNotifications);
   };
+
   useEffect(() => {
     const id = setInterval(fetchNotifications, 5000);
     return () => clearInterval(id);
@@ -54,11 +62,19 @@ const Notifications = () => {
   useEffect(fetchNotifications, []);
 
   const newTiles = newNotifications.map((props) => (
-    <Notification key={props.id} {...props} handleSeenClick={handleSeenClick} />
+    <Notification
+      key={props.uid}
+      {...props}
+      handleSeenClick={handleSeenClick}
+    />
   ));
 
   const oldTiles = oldNotifications.map((props) => (
-    <Notification key={props.id} {...props} handleSeenClick={handleSeenClick} />
+    <Notification
+      key={props.uid}
+      {...props}
+      handleSeenClick={handleSeenClick}
+    />
   ));
 
   return (

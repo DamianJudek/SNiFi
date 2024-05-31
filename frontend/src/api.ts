@@ -74,6 +74,9 @@ export const setIntegrations = async (
 export const getNotifications = () =>
   fetch(`${backendBase}/notifications`, { method: "GET" });
 
+export const postNotificationSeen = (uid: string) =>
+  fetch(`${backendBase}/notification_seen/${uid}`, { method: "POST" });
+
 export const sendPcapFile = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);

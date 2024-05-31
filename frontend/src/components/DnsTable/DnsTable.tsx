@@ -1,4 +1,6 @@
 import TableBody from "@mui/material/TableBody";
+import CircularLoader from "../Loader/Loader";
+import { displayDate } from "../../utils/date";
 import { DnsTableProps } from "./DnsTable.interface";
 import {
   StyledTableContainer,
@@ -8,17 +10,6 @@ import {
   StyledTableRow,
   NoRowsInfo,
 } from "./DnsTable.styled";
-import CircularLoader from "../Loader/Loader";
-
-const displayDate = (date: string) => {
-  const dateObj = new Date(date);
-  const hours = dateObj.getHours();
-  const minutes = dateObj.getMinutes();
-  const day = dateObj.getDate();
-  const month = dateObj.getMonth() + 1;
-  const year = dateObj.getFullYear();
-  return `${hours}:${minutes} ${day}-${month}-${year}`;
-};
 
 export default function DnsTable({ blockedList, isLoading }: DnsTableProps) {
   return (

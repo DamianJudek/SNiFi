@@ -18,9 +18,11 @@ export const NotificationsTab = styled.div`
   flex-direction: column;
   align-items: center;
   background-color: ${({ theme }) => theme.palette.lightBlack};
-  max-width: 600px;
+  max-width: 500px;
   margin-bottom: ${({ theme }) => theme.spacing.large};
   width: 100%;
+  max-height: 70vh;
+  overflow-y: auto;
 `;
 
 export const NotificationsTabName = styled.h3`
