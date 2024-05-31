@@ -469,7 +469,7 @@ api.add_resource(NotificationSeen, '/notification_seen/<string:uid>')
 
 api.add_resource(HealthCheck, '/health_check')
 
-init_schedulers(db)
+# init_schedulers(db)
 
 logger.info("SNiFi has started successfully!")
 
