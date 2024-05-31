@@ -48,7 +48,7 @@ db = client['snifi-db']
 predictions_collection = db['predictions']
 processing_status_collection = db['processing_status']
 
-directories = ["uploads/processed", "uploads/auto", "processed", "split_temp", "output"]
+directories = ["uploads/processed", "uploads/auto", "processed", "split_temp"]
 for directory in directories:
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -86,13 +86,8 @@ def process_pcap(file_path, scan_id):
     try:
         logger.info(f"Processing PCAP file: {file_path}")
         processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "processing"}})
-
-        processed_dir = "processed"
-        if not os.path.exists(processed_dir):
-            os.makedirs(processed_dir)
-            os.chmod(processed_dir, 0o777)
         
-        processed_file_path = os.path.join(processed_dir, os.path.basename(file_path))
+        processed_file_path = os.path.join("processed", os.path.basename(file_path))
         
         feature_extractor = Feature_extraction()
         logger.info(f"Extracting features from: {file_path} to: {processed_file_path}")
@@ -114,7 +109,6 @@ def process_pcap(file_path, scan_id):
         processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "error", "error": str(e)}})
 
 def submit_for_prediction(processed_file_path, scan_id):
-    label_mapping = {0: "Benign", 1: "Attack"}
     try:
         logger.info(f"Submitting for prediction: {processed_file_path}")
         data = pd.read_csv(processed_file_path)
@@ -128,7 +122,6 @@ def submit_for_prediction(processed_file_path, scan_id):
 
         predictions = model.predict(data[feature_columns]) # make predictions
         confidence_levels = model.predict_proba(data[feature_columns]) # get confidence levels for each class
-        confidence_for_class = confidence_levels.max(axis=1)
 
         attack_predictions = sum(predictions)
         benign_predictions = len(predictions) - attack_predictions
@@ -138,7 +131,6 @@ def submit_for_prediction(processed_file_path, scan_id):
         average_confidence_benign = confidence_levels[predictions == 0, 0].mean() if benign_predictions > 0 else 0 # calculate the average confidence level for 'Benign' predictions
 
         decision_threshold = 0.6
-
         final_decision = "Attack" if attack_ratio > decision_threshold and average_confidence_attack > 0.7 else "Benign" # final decision based on attack ratio and average confidence level
 
         prediction_data = {
