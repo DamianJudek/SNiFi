@@ -1,7 +1,11 @@
+import os
+
 import netifaces
 
 
 def get_default_gateway_ip():
+    if os.environ['SPOOF_GATEWAY_IP']:
+        return os.environ['SPOOF_GATEWAY_IP']
     try:
         return netifaces.gateways()['default'][netifaces.AF_INET][0]
     except KeyError:
