@@ -1,6 +1,7 @@
 import { useState, SyntheticEvent } from "react";
 import SettingsTab from "./SettingsTab";
 import IntegrationSettings from "./SettingsViews/IntegrationSettings";
+import DnsSettings from "./SettingsViews/DnsSettings";
 import { a11yProps } from "./Settings.functions";
 import {
   Container,
@@ -31,12 +32,16 @@ const Settings = () => {
         >
           <StyledOption label="General" {...a11yProps(0)} />
           <StyledOption label="Integrations" {...a11yProps(1)} />
+          <StyledOption label="DNS" {...a11yProps(2)} />
         </StyledOptions>
         <SettingsTab tabId={tabId} index={0} header="General">
           here we will put some general settings
         </SettingsTab>
         <SettingsTab tabId={tabId} index={1} header="Integrations">
           <IntegrationSettings />
+        </SettingsTab>
+        <SettingsTab tabId={tabId} index={2} header="DNS">
+          <DnsSettings />
         </SettingsTab>
       </InnerContainer>
     </Container>

@@ -96,3 +96,6 @@ export const getPredictResult = async (scanId: string) =>
 
 export const getDnsList = () =>
   fetch(`${backendBase}/dns_queries`, { method: "GET" });
+
+export const postDnsProtection = (enable: boolean) =>
+  fetch(`${backendBase}/protection?enable=${enable}`, { method: "POST" });
