@@ -1,4 +1,4 @@
-import { SettingsTabProps } from "./Settings.interfaces";
+import { SettingsTabProps } from "./Settings.interface";
 import {
   StyledSettingsTab,
   SettingsTabName,

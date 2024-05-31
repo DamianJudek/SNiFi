@@ -10,6 +10,7 @@ import {
 export const Wrapper = styled.div`
   background-color: ${({ theme }) => theme.palette.white};
   min-width: 300px;
+  max-width: 400px;
   min-height: 60px;
   padding: ${({ theme }) => theme.spacing.small};
   margin: ${({ theme }) => `${theme.spacing.small} 0`};
@@ -25,12 +26,14 @@ export const TopRow = styled.div`
   display: flex;
   align-items: center;
   width: 100%;
+  margin-bottom: ${({ theme }) => theme.spacing.small};
 `;
 
 export const Type = styled.p`
   ${LabelBold};
-  margin-right: ${({ theme }) => theme.spacing.small};
+  margin-right: ${({ theme }) => theme.spacing.medium};
   color: ${({ theme }) => theme.palette.lightBlack};
+  font-size: 20px;
 `;
 
 export const Severity = styled(Rating)`
@@ -46,11 +49,16 @@ export const Date = styled.p`
 export const DeviceIp = styled.p`
   ${LabelSmallBold};
   color: ${({ theme }) => theme.palette.lightBlack};
-  margin-bottom: ${({ theme }) => theme.spacing.small};
+  margin-bottom: ${({ theme }) => theme.spacing.tiny};
+`;
+export const DeviceMAC = styled.p`
+  ${LabelSmallBold};
+  color: ${({ theme }) => theme.palette.lightBlack};
+  margin-bottom: ${({ theme }) => theme.spacing.tiny};
 `;
 
 export const Description = styled.p`
   ${Paragraph};
   color: ${({ theme }) => theme.palette.lightBlack};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
+  margin: ${({ theme }) => theme.spacing.medium} 0;
 `;

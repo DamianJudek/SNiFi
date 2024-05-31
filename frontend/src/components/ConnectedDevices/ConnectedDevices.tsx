@@ -3,6 +3,8 @@ import { getDevices, updateDevice } from "../../api";
 import useAlert from "../../hooks/useAlert";
 import Divider from "../Divider/Divider";
 import Device from "../Device/Device";
+import CircularLoader from "../Loader/Loader";
+import { ConnectedDevicesApiResponse } from "./ConnectedDevices.interface";
 import {
   Contaienr,
   Top,
@@ -11,18 +13,17 @@ import {
   HeaderLabel,
   Content,
 } from "./ConnectedDevices.styled";
-import CircularLoader from "../Loader/Loader";
-// import { devicesApiMockedResponse } from "../apiMocks";
 
 const ConnectedDevices = () => {
-  const [detectedDevices, setDetectedDevices] = useState([]);
+  const [detectedDevices, setDetectedDevices] =
+    useState<ConnectedDevicesApiResponse>([]);
   const [showAlert, Alert] = useAlert({});
 
   const handleVerify = (mac: string, isNew: boolean) => {
     updateDevice(mac, isNew)
       .then((res) => {
         if (res.status === 200) {
-          refreshDevices();
+          fetchDevices();
         }
 
         throw res.text;
@@ -37,7 +38,7 @@ const ConnectedDevices = () => {
     updateDevice(mac, undefined, undefined, isBlocked)
       .then((res) => {
         if (res.status === 200) {
-          refreshDevices();
+          fetchDevices();
         }
 
         throw res.text;
@@ -48,7 +49,7 @@ const ConnectedDevices = () => {
       });
   };
 
-  const refreshDevices = () => {
+  const fetchDevices = () => {
     getDevices()
       .then((res) => {
         return res.json();
@@ -63,17 +64,15 @@ const ConnectedDevices = () => {
       });
   };
 
+  useEffect(() => {
+    const id = setInterval(fetchDevices, 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(fetchDevices, []);
+
   const devices = detectedDevices.map(
-    ({
-      mac,
-      name,
-      ip,
-      isBlocked,
-      isNew,
-      available,
-      discoveredAt,
-      availability,
-    }) => (
+    ({ mac, name, ip, isBlocked, isNew, discoveredAt, availability }) => (
       <Device
         key={ip}
         mac={mac}
@@ -81,7 +80,7 @@ const ConnectedDevices = () => {
         ip={ip}
         isNew={isNew}
         isBlocked={isBlocked}
-        available={available}
+        available={availability[0].available}
         availability={availability}
         handleVerify={handleVerify}
         handleBlock={handleBlock}
@@ -89,8 +88,6 @@ const ConnectedDevices = () => {
       />
     )
   );
-
-  useEffect(refreshDevices, []);
 
   return (
     <Contaienr>

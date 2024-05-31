@@ -1,56 +1,64 @@
 import Button from "../../components/Button/Button";
+import { displayDate } from "../../utils/date";
+import { NotificationType, NotificationProps } from "./Notification.interface";
 import {
   Wrapper,
   TopRow,
   Type,
   Severity,
   DeviceIp,
+  DeviceMAC,
   Date,
   Description,
 } from "./Notification.styled";
 
-export type NotificationType = {
-  id: string;
-  type: string;
-  severity: number;
-  device: {
-    name: string;
-    mac: string;
-    ip: string;
-  };
-  scanId: string;
-  timestamp: string;
-  seen: boolean;
-};
-
-export type NotificationProps = NotificationType & {
-  handleSeenClick: (id: string) => void;
+const mapType = (type: NotificationType) => {
+  switch (type) {
+    case "new_device":
+      return "New device";
+    case "ip_change":
+      return "Device IP change";
+    case "device_offline":
+      return "Device offline";
+    case "blocked_query":
+      return "Blocked DNS";
+  }
 };
 
 export const Notification = ({
-  id,
+  uid,
   type,
   severity,
   device,
-  scanId,
   timestamp,
   seen,
+  query,
   handleSeenClick,
 }: NotificationProps) => {
+  const mapDescription = () => {
+    switch (type) {
+      case "new_device":
+        return `We detected new device with ${device?.mac} mac address on your network`;
+      case "ip_change":
+        return "One of the devices on your network has changed its IP address";
+      case "device_offline":
+        return "One of the devices has disappeared from your network";
+      case `We have blocked the DNS query to a suspicious domain: ${query}`:
+        return "Blocked DNS";
+    }
+  };
+
   return (
     <Wrapper>
       <TopRow>
-        <Type>{type}</Type>
-        <Date>{timestamp}</Date>
-
+        <Type>{mapType(type)}</Type>
+        <Date>{displayDate(timestamp)}</Date>
         <Severity value={severity} max={severity} readOnly />
       </TopRow>
-      <DeviceIp>{`From: ${device.ip}`}</DeviceIp>
-      <Description>
-        Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dolores,
-        autem?
-      </Description>
-      {!seen && <Button onClick={() => handleSeenClick(id)}>Ok</Button>}
+      {device?.mac && <DeviceMAC>{`MAC: ${device.mac}`}</DeviceMAC>}
+      {device?.ip && <DeviceIp>{`IP: ${device.ip}`}</DeviceIp>}
+      <Description>{mapDescription()}</Description>
+      {!seen && <Button onClick={() => handleSeenClick(uid)}>Ok</Button>}
     </Wrapper>
   );
 };

@@ -62,6 +62,7 @@ export const StyledAlert = styled(Alert)`
 
 export const Icon = styled.img`
   width: 80px;
+  height: 80px;
   margin-bottom: ${({ theme }) => theme.spacing.medium};
 `;
 

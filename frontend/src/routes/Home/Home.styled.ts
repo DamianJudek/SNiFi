@@ -6,13 +6,13 @@ export const Container = styled.div`
   padding: ${({ theme }) => theme.spacing.medium};
 `;
 
-export const StatisticsWrapper = styled.div`
+export const FullGrid = styled.div`
   max-width: 1600px;
   width: 100%;
   margin: ${({ theme }) => `0 auto ${theme.spacing.large} auto`};
 `;
 
-export const HalfContainer = styled.div`
+export const HalfGrid = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;

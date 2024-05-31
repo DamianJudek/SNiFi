@@ -74,6 +74,9 @@ export const setIntegrations = async (
 export const getNotifications = () =>
   fetch(`${backendBase}/notifications`, { method: "GET" });
 
+export const postNotificationSeen = (uid: string) =>
+  fetch(`${backendBase}/notification_seen/${uid}`, { method: "POST" });
+
 export const sendPcapFile = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
@@ -93,3 +96,9 @@ export const getPredictResult = async (scanId: string) =>
   fetch(`${mlBase}/predict/result/${scanId}`, {
     method: "GET",
   });
+
+export const getDnsList = () =>
+  fetch(`${backendBase}/dns_queries`, { method: "GET" });
+
+export const postDnsProtection = (enable: boolean) =>
+  fetch(`${backendBase}/protection?enable=${enable}`, { method: "POST" });

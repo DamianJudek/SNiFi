@@ -24,6 +24,7 @@ export default function Switch({
       checked={checked}
       //   @ts-ignore
       onChange={handleChange}
+      inputProps={{ "aria-label": label }}
     />
   );
 

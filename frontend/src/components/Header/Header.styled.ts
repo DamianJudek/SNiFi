@@ -9,6 +9,11 @@ export const StyledHeader = styled.header`
   padding: ${({ theme }) => `${theme.spacing.small} ${theme.spacing.large}`};
   width: 100%;
   background-color: ${({ theme }) => theme.palette.lightBlack};
+
+  a {
+    text-decoration: none;
+    margin-left: ${({ theme }) => theme.spacing.small};
+  }
 `;
 
 export const StyledLink = styled(Link)`

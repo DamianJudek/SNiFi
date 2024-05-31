@@ -49,7 +49,7 @@ const DragAndDrop = ({ file, scanFile, setFile }: DragAndDropProps) => {
           {`The file should be less than ${maxSize}MB`}
         </StyledAlert>
       )}
-      <Icon src={fileIcon} />
+      <Icon loading="lazy" src={fileIcon} alt="file icon" />
       <Info>
         <InfoButton>Choose a file</InfoButton> or drag it here
       </Info>

@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import useAlert from "../../hooks/useAlert";
-import { getNotifications } from "../../api";
-import {
-  Notification,
-  NotificationProps,
-} from "../../components/Notification/Notification";
+import { getNotifications, postNotificationSeen } from "../../api";
+import { NotificationProps } from "../../components/Notification/Notification.interface";
+import { Notification } from "../../components/Notification/Notification";
 import {
   Wrapper,
   Header,
@@ -14,33 +12,16 @@ import {
   NoNotificationsInfo,
 } from "./Notifications.styled";
 
-const notificationObj = {
-  id: "1",
-  type: "new_device",
-  severity: 3,
-  device: {
-    name: "device name",
-    mac: "mac1:23:23:@3:@3:@3::@3:24",
-    ip: "192.168.8.1",
-  },
-  scanId: "adad adadadsa dasd ad",
-  timestamp: "2024-01-03",
-  seen: true,
-};
-
-const mockedApiResponse = [
-  notificationObj,
-  { ...notificationObj, severity: 1, id: "2" },
-  { ...notificationObj, severity: 2, id: "3", seen: true },
-];
-
 const Notifications = () => {
-  const [notifications, setNotifications] = useState<NotificationProps[]>([]);
+  const [newNotifications, setNewNotifications] = useState<NotificationProps[]>(
+    []
+  );
+  const [oldNotifications, setOldNotifications] = useState<NotificationProps[]>(
+    []
+  );
   const [showAlert, Alert] = useAlert({});
 
   const fetchNotifications = () => {
-    setNotifications(mockedApiResponse);
-    return;
     getNotifications()
       .then((res) => {
         if (res.status === 200) {
@@ -49,51 +30,52 @@ const Notifications = () => {
         throw res.json();
       })
       .then((res) => {
-        console.log("notifications", res);
-        setNotifications(res);
+        setNewNotifications(res.new);
+        setOldNotifications(res.old);
       })
-
       .catch((err) => {
         console.error(err);
         showAlert("Error fetching notifications", "error");
       });
   };
 
-  const handleSeenClick = (id: string) => {
-    console.log("Notification ", id, " marked as seen");
-    fetchNotifications();
+  const handleSeenClick = (uid: string) => {
+    postNotificationSeen(uid)
+      .then((res) => {
+        if (res.status === 200) {
+          return true;
+        }
+        throw res.json();
+      })
+      .catch((err) => {
+        console.error("Error marking notification", err);
+        showAlert("Error marking notification", "error");
+      })
+      .finally(fetchNotifications);
   };
+
+  useEffect(() => {
+    const id = setInterval(fetchNotifications, 5000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(fetchNotifications, []);
 
-  const newTiles = notifications
-    .map((props) => {
-      if (!props.seen) {
-        return (
-          <Notification
-            key={props.id}
-            {...props}
-            handleSeenClick={handleSeenClick}
-          />
-        );
-      }
-      return null;
-    })
-    .filter((e) => e !== null);
+  const newTiles = newNotifications.map((props) => (
+    <Notification
+      key={props.uid}
+      {...props}
+      handleSeenClick={handleSeenClick}
+    />
+  ));
 
-  const oldTiles = notifications.map((props) => {
-    if (props.seen) {
-      return (
-        <Notification
-          key={props.id}
-          {...props}
-          handleSeenClick={handleSeenClick}
-        />
-      );
-    }
-    return null;
-  });
-  console.log(newTiles);
+  const oldTiles = oldNotifications.map((props) => (
+    <Notification
+      key={props.uid}
+      {...props}
+      handleSeenClick={handleSeenClick}
+    />
+  ));
 
   return (
     <Wrapper>
@@ -110,7 +92,13 @@ const Notifications = () => {
       </NotificationsTab>
       <NotificationsTab>
         <NotificationsTabName>Old</NotificationsTabName>
-        <NotificationsTabContent>{oldTiles}</NotificationsTabContent>
+        <NotificationsTabContent>
+          {oldTiles.length > 0 ? (
+            oldTiles
+          ) : (
+            <NoNotificationsInfo>No old notifications</NoNotificationsInfo>
+          )}
+        </NotificationsTabContent>
       </NotificationsTab>
       {Alert}
     </Wrapper>

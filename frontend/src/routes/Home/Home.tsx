@@ -2,18 +2,22 @@ import { Container } from "./Home.styled";
 import DnsStatistics from "../../components/DnsStatistics/DnsStatistics";
 import ConnectedDevices from "../../components/ConnectedDevices/ConnectedDevices";
 import ManualScan from "../../components/ManualScan/ManualScan";
-import { StatisticsWrapper, HalfContainer } from "./Home.styled";
+import DnsBlockedList from "../../components/DnsBlockedList/DnsBlockedList";
+import { FullGrid, HalfGrid } from "./Home.styled";
 
 const Home = () => {
   return (
     <Container>
-      <StatisticsWrapper>
+      <FullGrid>
         <DnsStatistics />
-      </StatisticsWrapper>
-      <HalfContainer>
+      </FullGrid>
+      <HalfGrid>
         <ConnectedDevices />
         <ManualScan />
-      </HalfContainer>
+      </HalfGrid>
+      <FullGrid>
+        <DnsBlockedList />
+      </FullGrid>
     </Container>
   );
 };
