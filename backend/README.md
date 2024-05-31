@@ -1,7 +1,6 @@
 # A backend server for SNiFi built on Flask.
 
-SNiFi is a simple threat detection system designed for small networks. It's built with Flask and provides an API to be
-used with frontend or other integrations.
+SNiFi backend is threat detection system designed for small networks. It's built with flexible Flask framework and provides an API to be used with frontend or other integrations.
 
 ## Recommended way of running the backend server is with Docker Compose.
 
