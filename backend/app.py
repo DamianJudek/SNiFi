@@ -13,10 +13,11 @@ from flask_restful import Api, Resource, reqparse
 from nmap import PortScannerError
 from pymongo import MongoClient
 
-from util.iputil import get_default_gateway_ip
-from daemon.notification_daemon import load_notification_config
 from daemon.device_daemon import update_devices_with_scan_result
 from daemon.discovery_daemon import discovery_scan
+from daemon.notification_daemon import load_notification_config
+from schedulers.scheduler_manager import init_schedulers
+from util.iputil import get_default_gateway_ip
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ swagger = Swagger(app, template={
         {"name": "scans", "description": "Network scan management"},
         {"name": "dns", "description": "Dns proxy management"},
         {"name": "integrations", "description": "Integration management"},
+        {"name": "notifications", "description": "Threat notifications"},
         {"name": "other", "description": "Miscellaneous"}
     ],
 })
@@ -49,6 +51,7 @@ scan_status_collection = db['scan_status']
 scan_result_collection = db['scan_result']
 device_collection = db['devices']
 integrations_collection = db['integrations']
+notification_collection = db['notifications']
 
 load_notification_config(integrations_collection)
 
@@ -321,10 +324,29 @@ class DnsStats(Resource):
             "protection_enabled": await adg.protection_enabled(),
             "stats_period": await stats.period(),
             "dns_queries": await stats.dns_queries(),
+            "blocked_queries": await stats.blocked_filtering(),
             "blocked_percentage": await stats.blocked_percentage(),
             "active_rules": await adg.filtering.rules_count(allowlist=False)
         }
         return summary
+
+
+class DnsQueries(Resource):
+    def get(self):
+        """
+        Get list of blocked malicious DNS queries
+        ---
+        tags:
+          - dns
+        responses:
+            200:
+                description: list of malicious dns proxy queries
+        """
+        return asyncio.run(self.get_queries())
+
+    async def get_queries(self):
+        adg = Adg('localhost', port=8080, username='admin', password='password')
+        return await adg.request('querylog', params={'response_status': 'blocked'})
 
 
 class Integrations(Resource):
@@ -371,6 +393,51 @@ class Integrations(Resource):
         return {'status': 'ok'}
 
 
+class Notifications(Resource):
+    def get(self):
+        """
+        Gets the list of notifications divided into new and old
+        ---
+        tags:
+          - notifications
+        responses:
+            200:
+                description: Notifications response
+        """
+
+        new = list(notification_collection.find(
+            {
+                'seen': False
+            },
+            {'_id': False}
+        ))
+        old = list(notification_collection.find(
+            {
+                'seen': True
+            },
+            {'_id': False}
+        ).limit(20))
+
+        return {'new': new, 'old': old}
+
+
+class NotificationSeen(Resource):
+    def post(self, uid: str):
+        """
+        Marks a notification as seen
+        ---
+        tags:
+          - notifications
+        responses:
+            200:
+                description: Notification marked as seen
+        """
+        result = notification_collection.update_one({'uid': uid}, {'$set': {'seen': True}})
+        if result.matched_count == 0:
+            return {'status': 'error', 'message': 'Notification not found'}, 404
+        return {'status': 'ok'}
+
+
 class HealthCheck(Resource):
     def get(self):
         """
@@ -393,10 +460,16 @@ api.add_resource(UpdateDevice, '/device/<string:mac_addr>/update')
 
 api.add_resource(Protection, '/protection')
 api.add_resource(DnsStats, '/dns_stats')
+api.add_resource(DnsQueries, '/dns_queries')
 
 api.add_resource(Integrations, '/integrations')
 
+api.add_resource(Notifications, '/notifications')
+api.add_resource(NotificationSeen, '/notification_seen/<string:uid>')
+
 api.add_resource(HealthCheck, '/health_check')
+
+# init_schedulers(db)
 
 logger.info("SNiFi has started successfully!")
 

@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -22,14 +23,14 @@ def update_devices_with_scan_result(db: Database, scanId: str):
     current_devices_macs = [device['mac'] for device in scan['result']]
     for device in previous_devices:
         if device['mac'] not in current_devices_macs:
-            update_existing_device(devices_collection, device['ip'], device['mac'], scanId, scan['timestamp'], available=False)
+            update_existing_device(devices_collection, notifications_collection, device['ip'], device['mac'], scanId, scan['timestamp'], available=False)
             logger.debug(f'Device {device["mac"]} not found in scan {scanId}, updating availability')
 
     for device in scan['result']:
         if device['mac'] not in previous_devices_macs:
-            new_device_detected(devices_collection, device['ip'], device['mac'], scanId, scan['timestamp'])
+            new_device_detected(devices_collection, notifications_collection, device['ip'], device['mac'], scanId, scan['timestamp'])
         else:
-            update_existing_device(devices_collection, device['ip'], device['mac'], scanId, scan['timestamp'])
+            update_existing_device(devices_collection, notifications_collection, device['ip'], device['mac'], scanId, scan['timestamp'])
 
     logger.info('Devices collection updated')
 
@@ -57,6 +58,7 @@ def new_device_detected(devices_collection: Collection, notifications_collection
 
     notifications_collection.insert_one(
         {
+            'uid': str(uuid.uuid4()),
             'type': 'new_device',
             'severity': 3,
             'device': {
@@ -65,6 +67,7 @@ def new_device_detected(devices_collection: Collection, notifications_collection
                 'ip': ip
             },
             'scanId': scanId,
+            'seen': False,
             'timestamp': timestamp
         }
     )
@@ -77,6 +80,7 @@ def update_existing_device(devices_collection: Collection, notifications_collect
         logger.info(f'IP address of device {mac} changed from {device["ip"]} to {ip}')
         notifications_collection.insert_one(
             {
+                'uid': str(uuid.uuid4()),
                 'type': 'ip_change',
                 'severity': 1,
                 'device': {
@@ -85,6 +89,7 @@ def update_existing_device(devices_collection: Collection, notifications_collect
                     'ip': ip
                 },
                 'scanId': scanId,
+                'seen': False,
                 'timestamp': timestamp
             }
         )
@@ -93,6 +98,7 @@ def update_existing_device(devices_collection: Collection, notifications_collect
         logger.info(f'Device {mac} went offline')
         notifications_collection.insert_one(
             {
+                'uid': str(uuid.uuid4()),
                 'type': 'device_offline',
                 'severity': 2,
                 'device': {
@@ -101,6 +107,7 @@ def update_existing_device(devices_collection: Collection, notifications_collect
                     'ip': ip
                 },
                 'scanId': scanId,
+                'seen': False,
                 'timestamp': timestamp
             }
         )

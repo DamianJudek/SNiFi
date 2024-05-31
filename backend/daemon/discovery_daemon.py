@@ -1,10 +1,14 @@
 import ipaddress
+import logging
+import os
 import time
 import arpreq
 
 from icmplib import ping, SocketPermissionError
 from nmap import nmap, PortScannerTimeout
 from scapy.layers.l2 import getmacbyip
+
+logger = logging.getLogger(__name__)
 
 
 def discovery_scan(addr_range: str, progress_callback=None, progress_interval=5):
@@ -22,7 +26,7 @@ def discovery_scan(addr_range: str, progress_callback=None, progress_interval=5)
             if progress_callback and time.time() - last_progress_time > progress_interval:
                 progress_callback(round(progress / hosts_count * 100, 2))
                 last_progress_time = time.time()
-            # print("Checking ip:", ip_addr)
+            logger.info("Checking ip: " + ip_addr)
 
             response = ping(ip_addr, count=1, timeout=1.5)
 
@@ -45,7 +49,21 @@ def discovery_scan(addr_range: str, progress_callback=None, progress_interval=5)
 
 
 def _get_mac_addr(ip: str):
-    return getmacbyip(ip) or arpreq.arpreq(ip)
+    if os.environ['SPOOF_MAC_ADDRESSES']:
+        logger.info("Spoofing MAC addresses is enabled, skipping MAC address discovery for " + ip)
+        mac = ip.replace(".", "")
+        mac = mac.ljust(12, "f")
+        mac = ":".join(mac[i:i+2] for i in range(0, len(mac), 2))
+        logger.info("Spoofed MAC address: " + mac)
+        return mac
+
+    mac = getmacbyip(ip)
+    if mac != "ff:ff:ff:ff:ff:ff":
+        return mac
+    mac = arpreq.arpreq(ip)
+    if mac != "ff:ff:ff:ff:ff:ff":
+        return mac
+    return None
 
 
 def _nmap_scan_mac(ip: str):
