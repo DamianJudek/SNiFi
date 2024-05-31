@@ -93,3 +93,6 @@ export const getPredictResult = async (scanId: string) =>
   fetch(`${mlBase}/predict/result/${scanId}`, {
     method: "GET",
   });
+
+export const getDnsList = () =>
+  fetch(`${backendBase}/dns_queries`, { method: "GET" });
