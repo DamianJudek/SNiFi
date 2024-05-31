@@ -57,8 +57,15 @@ const DnsStatistics = () => {
         console.error("Error fetching dns stats", err);
         showAlert("Error fetching dns stats", "error");
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
+
+  useEffect(() => {
+    const id = setInterval(fetchDnsStats, 5000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(fetchDnsStats, []);
 

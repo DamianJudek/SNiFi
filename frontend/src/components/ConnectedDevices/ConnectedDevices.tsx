@@ -22,7 +22,7 @@ const ConnectedDevices = () => {
     updateDevice(mac, isNew)
       .then((res) => {
         if (res.status === 200) {
-          refreshDevices();
+          fetchDevices();
         }
 
         throw res.text;
@@ -37,7 +37,7 @@ const ConnectedDevices = () => {
     updateDevice(mac, undefined, undefined, isBlocked)
       .then((res) => {
         if (res.status === 200) {
-          refreshDevices();
+          fetchDevices();
         }
 
         throw res.text;
@@ -48,7 +48,7 @@ const ConnectedDevices = () => {
       });
   };
 
-  const refreshDevices = () => {
+  const fetchDevices = () => {
     getDevices()
       .then((res) => {
         return res.json();
@@ -62,6 +62,13 @@ const ConnectedDevices = () => {
         showAlert("Error fetching devices list", "error");
       });
   };
+
+  useEffect(() => {
+    const id = setInterval(fetchDevices, 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(fetchDevices, []);
 
   const devices = detectedDevices.map(
     ({
@@ -89,8 +96,6 @@ const ConnectedDevices = () => {
       />
     )
   );
-
-  useEffect(refreshDevices, []);
 
   return (
     <Contaienr>

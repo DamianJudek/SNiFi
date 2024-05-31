@@ -21,11 +21,13 @@ const Notifications = () => {
       })
       .catch((err) => {
         console.error(err);
-      })
-      .finally(() => {
-        setTimeout(fetchNotifications, 10000);
       });
   };
+
+  useEffect(() => {
+    const id = setInterval(fetchNotifications, 10000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(fetchNotifications, []);
 

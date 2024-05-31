@@ -23,7 +23,7 @@ const Notifications = () => {
   );
   const [showAlert, Alert] = useAlert({});
 
-  const fetchNotifications = () =>
+  const fetchNotifications = () => {
     getNotifications()
       .then((res) => {
         if (res.status === 200) {
@@ -40,20 +40,18 @@ const Notifications = () => {
         console.error(err);
         showAlert("Error fetching notifications", "error");
       });
+  };
 
-  const fetchNotificationsInLoop = () =>
-    fetchNotifications().finally(() =>
-      setTimeout(fetchNotificationsInLoop, 7000)
-    );
-
-  const handleSeenClick = (id = "1") => {
+  const handleSeenClick = (id: string) => {
     console.log("Notification ", id, " marked as seen");
     fetchNotifications();
   };
-
   useEffect(() => {
-    fetchNotificationsInLoop();
+    const id = setInterval(fetchNotifications, 5000);
+    return () => clearInterval(id);
   }, []);
+
+  useEffect(fetchNotifications, []);
 
   const newTiles = newNotifications.map((props) => (
     <Notification key={props.id} {...props} handleSeenClick={handleSeenClick} />
