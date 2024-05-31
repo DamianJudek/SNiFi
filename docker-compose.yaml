@@ -47,7 +47,7 @@ services:
         condition: service_healthy
     ports:
       - '5001:5000'
-    command: 'gunicorn -b 0.0.0.0:5000 app:app --reload'
+    command: ['/app/start.sh']
     volumes:
       - './ml/:/srv'
     healthcheck:

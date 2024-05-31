@@ -1,7 +1,6 @@
 import os
 import uuid
 import joblib
-import subprocess
 import logging
 import pandas as pd
 import threading
@@ -11,8 +10,6 @@ from flask_cors import CORS
 from flasgger import Swagger
 from pymongo import MongoClient
 from concurrent.futures import ThreadPoolExecutor
-from tqdm import tqdm
-from multiprocessing import Process
 from dotenv import load_dotenv
 
 from utils.feature_extraction import Feature_extraction
@@ -51,7 +48,7 @@ db = client['snifi-db']
 predictions_collection = db['predictions']
 processing_status_collection = db['processing_status']
 
-directories = ["uploads", "processed", "split_temp", "output"]
+directories = ["uploads/processed", "uploads/auto", "processed", "split_temp"]
 for directory in directories:
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -71,69 +68,47 @@ def process_split_file(subfile_path, processed_file_path):
 def merge_csv_files(destination_directory, output_file_path):
     csv_subfiles = os.listdir(destination_directory)
     mode = 'w'
-    for f in tqdm(csv_subfiles):
+    for f in csv_subfiles:
         try:
             d = pd.read_csv(os.path.join(destination_directory, f))
-            d.to_csv(output_file_path, header=mode=='w', index=False, mode=mode)
-            mode='a'
+            d.to_csv(output_file_path, header=(mode == 'w'), index=False, mode=mode)
+            mode = 'a'
         except Exception as e:
             logger.error(f"Error merging CSV file {f}: {e}")
+
+def send_to_discord(message):
+  logger.info(f"Sending to Discord: {message}")
+
+def send_to_telegram(message):
+  logger.info(f"Sending to Telegram: {message}")
 
 def process_pcap(file_path, scan_id):
     try:
         logger.info(f"Processing PCAP file: {file_path}")
         processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "processing"}})
-
-        split_directory = f'split_temp/{scan_id}'
-        destination_directory = f'output/{scan_id}'
         
-        os.makedirs(split_directory, exist_ok=True)
-        os.chmod(split_directory, 0o777)
-        os.makedirs(destination_directory, exist_ok=True)
-        os.chmod(destination_directory, 0o777)
+        processed_file_path = os.path.join("processed", os.path.basename(file_path))
         
-        subprocess.run(['tcpdump', '-r', file_path, '-w', os.path.join(split_directory, 'split'), '-C', '10'], check=True)
+        feature_extractor = Feature_extraction()
+        logger.info(f"Extracting features from: {file_path} to: {processed_file_path}")
+        feature_extractor.pcap_evaluation(file_path, processed_file_path)
 
-        subfiles = os.listdir(split_directory)
-        logger.info(f"Split files: {subfiles}")
-        if not subfiles:
-            raise Exception("No split files generated.")
+        full_processed_file_path = processed_file_path + ".csv"
+        if not os.path.exists(full_processed_file_path):
+            raise Exception(f"Processed file {full_processed_file_path} not found.")
 
-        processes = []
-        for subfile in subfiles:
-            subpcap_file = os.path.join(split_directory, subfile)
-            processed_file_path = os.path.join(destination_directory, f"{subfile}.csv")
-            p = Process(target=process_split_file, args=(subpcap_file, processed_file_path))
-            p.start()
-            processes.append(p)
-
-        for p in processes:
-            p.join()
-
-        assert len(subfiles) == len(os.listdir(destination_directory)), "Mismatch in number of processed files."
-
-        for sf in subfiles:
-            os.remove(os.path.join(split_directory, sf))
-
-        full_processed_file_path = os.path.join("processed", os.path.basename(file_path) + ".csv")
-        merge_csv_files(destination_directory, full_processed_file_path)
-
-        with lock:
-            for cf in os.listdir(destination_directory):
-                os.remove(os.path.join(destination_directory, cf))
-
-        os.rmdir(split_directory)
-        os.rmdir(destination_directory)
-
+        logger.info(f"Processed file {full_processed_file_path} successfully created.")
+        
         processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "processed"}})
         submit_for_prediction(full_processed_file_path, scan_id)
-
+        
+        os.remove(file_path)
+        logger.info(f"Removed file: {file_path}")
     except Exception as e:
         logger.exception(f"Error processing PCAP file: {e}")
         processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "error", "error": str(e)}})
 
 def submit_for_prediction(processed_file_path, scan_id):
-    label_mapping = {0: "Benign", 1: "Attack"}
     try:
         logger.info(f"Submitting for prediction: {processed_file_path}")
         data = pd.read_csv(processed_file_path)
@@ -147,7 +122,6 @@ def submit_for_prediction(processed_file_path, scan_id):
 
         predictions = model.predict(data[feature_columns]) # make predictions
         confidence_levels = model.predict_proba(data[feature_columns]) # get confidence levels for each class
-        confidence_for_class = confidence_levels.max(axis=1)
 
         attack_predictions = sum(predictions)
         benign_predictions = len(predictions) - attack_predictions
@@ -157,7 +131,6 @@ def submit_for_prediction(processed_file_path, scan_id):
         average_confidence_benign = confidence_levels[predictions == 0, 0].mean() if benign_predictions > 0 else 0 # calculate the average confidence level for 'Benign' predictions
 
         decision_threshold = 0.6
-
         final_decision = "Attack" if attack_ratio > decision_threshold and average_confidence_attack > 0.7 else "Benign" # final decision based on attack ratio and average confidence level
 
         prediction_data = {
@@ -170,14 +143,25 @@ def submit_for_prediction(processed_file_path, scan_id):
         }
         predictions_collection.insert_one(prediction_data)
         logger.info(f"Predictions saved for scan_id: {scan_id}")
+        
+        if final_decision == "Attack":
+          message = f"Scan ID: {scan_id}, Final Decision: {final_decision}"
+          send_to_discord(message)
+          send_to_telegram(message)
+        
+        del data
     except Exception as e:
         logger.exception(f"Error in prediction: {e}")
         processing_status_collection.update_one({"scanId": scan_id}, {"$set": {"status": "error", "error": str(e)}})
+    finally:
+        if os.path.exists(processed_file_path):
+            os.remove(processed_file_path)
+            logger.info(f"Removed processed file: {processed_file_path}")
 
 @app.route('/predict', methods=['POST'])
 def predict():
     """
-    Uploads a PCAP file for processing and prediction
+    Predicts the class of a PCAP file
     ---
     tags:
       - ml
@@ -191,7 +175,7 @@ def predict():
         description: The PCAP file to be processed
     responses:
       202:
-        description: Scan initiated successfully
+        description: Prediction initiated successfully
       400:
         description: Invalid input
       500:
@@ -204,9 +188,9 @@ def predict():
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
-    file_path = os.path.join("uploads", file.filename)
+    file_path = os.path.join("uploads/processed", file.filename)
     file.save(file_path)
-    
+
     if not os.path.exists(file_path):
         return jsonify({"error": "File not saved"}), 500
 
