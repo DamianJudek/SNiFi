@@ -124,7 +124,7 @@ class StartDiscovery(Resource):
             )
 
         try:
-            scan_result = discovery_scan(get_default_gateway_ip() + '/24', progress_callback=indicate_progress)
+            scan_result = discovery_scan('192.168.0.1/24', progress_callback=indicate_progress)
         except PortScannerError as e:
             logger.exception(f'Scan {uid} failed')
             scan_status_collection.update_one(
@@ -469,7 +469,7 @@ api.add_resource(NotificationSeen, '/notification_seen/<string:uid>')
 
 api.add_resource(HealthCheck, '/health_check')
 
-init_schedulers(db)
+# init_schedulers(db)
 
 logger.info("SNiFi has started successfully!")
 
