@@ -3,6 +3,12 @@
 The ML part of the project focuses on developing a machine learning model to classify network traffic as either 'Attack' or 'Benign'. The model utilizes the comprehensive CICIoT2023 dataset, which provides extensive data on IoT network behavior.
 
 ## How to run
+> **Note**: To correctly pull the machine learning models located at `models/`, Git Large File Storage (Git LFS) is required. Please install Git LFS by following the [installation instructions](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage). After cloning the repository, navigate to the main project directory and run the following commands:
+> ```bash
+> git lfs install
+> git lfs pull
+> ```
+
 Initially, this project used Poetry for dependency management. However, due to compatibility issues on macOS, we transitioned to using a `requirements.txt` file for setting up the Docker container. Follow these steps to set up and run the project:
 ### Using Docker Compose
 The recommended way of running the ML component is with Docker Compose, ensuring that all dependencies are correctly installed and the environment is properly set up.
