@@ -21,6 +21,12 @@ A recommended way of running the application is with Docker Compose. It will sta
 docker compose up --wait -d
 ```
 
+> **Note**: To correctly pull the machine learning models located in `ml/models/`, Git Large File Storage (Git LFS) is required. Please install Git LFS by following the [installation instructions](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage). After cloning the repository, navigate to the main project directory and run the following commands:
+> ```bash
+> git lfs install
+> git lfs pull
+> ```
+
 You can also run individual services separately. To do so, reference README files in respective modules for more information about this process.
 
 ## Main open source projects used
