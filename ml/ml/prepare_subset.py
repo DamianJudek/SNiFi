@@ -173,11 +173,11 @@ def write_helper(df, filename, first_file):
 def combine_csv(csv_files, percent, binary_labels=None, is_validation=False):
     first_file = True
     if is_validation:
-        output_path_original = f'/home/kap/projects/snifi-ml/data/preprocessed/csv/{percent}percent_validation_original_labels.csv'
-        output_path_binary = f'/home/kap/projects/snifi-ml/data/preprocessed/csv/{percent}percent_validation_binary_labels.csv' if binary_labels else None
+        output_path_original = os.path.join(PREPROCESSED_DIRECTORY, f'{percent}percent_validation_original_labels.csv')
+        output_path_binary = os.path.join(PREPROCESSED_DIRECTORY, f'{percent}percent_validation_binary_labels.csv') if binary_labels else None
     else:
-        output_path_original = f'/home/kap/projects/snifi-ml/data/preprocessed/csv/{percent}percent_original_labels.csv'
-        output_path_binary = f'/home/kap/projects/snifi-ml/data/preprocessed/csv/{percent}percent_binary_labels.csv' if binary_labels else None
+        output_path_original = os.path.join(PREPROCESSED_DIRECTORY, f'{percent}percent_original_labels.csv')
+        output_path_binary = os.path.join(PREPROCESSED_DIRECTORY, f'{percent}percent_binary_labels.csv') if binary_labels else None
 
     print("\n--- Combining CSV Files ---")
     total_samples_original = 0
@@ -185,7 +185,7 @@ def combine_csv(csv_files, percent, binary_labels=None, is_validation=False):
     for csv in csv_files:
         print(f"\nProcessing file: {csv}")
 
-        df = pd.read_csv(DATASET_DIRECTORY + csv)
+        df = pd.read_csv(os.path.join(DATASET_DIRECTORY, csv))
         
         df = convert_dtype(iana_convert(sample_rows(df, percent_rows=percent, is_validation=is_validation)))
 
