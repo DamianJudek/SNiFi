@@ -4,7 +4,9 @@ SNiFi backend is threat detection system designed for small networks. It's built
 
 ## Recommended way of running the backend server is with Docker Compose.
 
-Major benefit of running development server in docker is a hot reload feature. You can make changes to the code and they will be applied immediately without the need to rebuild the app or restart container.
+Major benefit of running development server in docker is a hot reload feature. You can make changes to the code, and they will be applied immediately without the need to rebuild the app or restart container.
+
+> **_NOTE:_**  **We recommend running the backend server on Linux host.** SNiFi backend container requires `network: host` feature of Docker to be able to perform active network scans. This feature is available on Windows and macOS hosts from version 4.29 of Docker Desktop (It also has to be manually enabled in experimental settings of docker Desktop). On Linux, it's available by default. However, in our testing it become apparent that this feature is not yet mature on Windows and macOS and can lead to issues with SNiFi.
 
 * You can start backend with whole application stack using docker compose.
 
