@@ -17,7 +17,7 @@ With flexibility and ease of deployment in mind, the whole application stack can
 
 A recommended way of running the application is with Docker Compose. It will start the whole application stack with a single command. 
 
-> **_NOTE:_** **We recommend running the backend server on a Linux host.** The SNiFi backend container needs Docker's `network: host` feature for active network scans. This feature is available on Windows and macOS with Docker Desktop version 4.29 and must be manually enabled in the experimental settings. On Linux, it's enabled by default. However, our tests show that this feature is not stable on Windows and macOS and may cause issues with SNiFi.
+> **Note**: **We recommend running the backend server on a Linux host.** The SNiFi backend container needs Docker's `network: host` feature for active network scans. This feature is available on Windows and macOS with Docker Desktop version 4.29 and must be manually enabled in the experimental settings. On Linux, it's enabled by default. However, our tests show that this feature is not stable on Windows and macOS and may cause issues with SNiFi.
 
 ```bash
 docker compose up --wait -d
