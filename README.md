@@ -2,6 +2,7 @@
 
 _Research and development project under the supervision of Dr. Tomasz Kowalski_
 
+> **Note**: Comprehensive documentation is available in the [Wiki section of this repository](https://github.com/DamianJudek/SNiFi/wiki).
 
 ## Summary
 
