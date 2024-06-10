@@ -19,6 +19,7 @@ export const HalfGrid = styled.div`
   gap: ${({ theme }) => theme.spacing.large};
   width: 100%;
   max-width: 1600px;
+  max-height: 50vh;
   padding: ${({ theme }) => theme.spacing.medium};
   margin: ${({ theme }) => `0 auto ${theme.spacing.large} auto`};
 

@@ -10,32 +10,6 @@ import {
 import Input from "../../../components/Input/Input";
 import { getIntegrations, setIntegrations } from "../../../api";
 
-// const sendDiscordEvent = () => {
-//   fetch(
-//     "https://discord.com/api/webhooks/1238097350749065276/7ooqFQAnedLAPF9FiwPO-GwTqN9xmDOgmAQ_39ik4g7V55F7larU-Ba2vic5s9zIKxfF",
-//     {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify({ content: "test" }),
-//     }
-//   );
-// };
-
-// const sendTelegramEvent = async () => {
-//   const botToken = "6696190820:AAFOW68zBudIb6obJwF4RGn8uR5RRggu-PY";
-//   const chat_id = "-1002016276047";
-//   const message = "some message";
-//   const res = await fetch(
-//     `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chat_id}&text=${message}`,
-//     {
-//       method: "GET",
-//     }
-//   );
-//   console.log({ res });
-// };
-
 const IntegrationSettings = () => {
   const [webhook, setWebhook] = useState("");
   const [botToken, setBotToken] = useState("");
