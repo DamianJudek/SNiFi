@@ -15,7 +15,7 @@ from pymongo import MongoClient
 
 from daemon.device_daemon import update_devices_with_scan_result
 from daemon.discovery_daemon import discovery_scan
-from daemon.notification_daemon import load_notification_config
+from daemon.notification_daemon import integration
 from schedulers.scheduler_manager import init_schedulers
 from util.iputil import get_default_gateway_ip
 
@@ -53,7 +53,7 @@ device_collection = db['devices']
 integrations_collection = db['integrations']
 notification_collection = db['notifications']
 
-load_notification_config(integrations_collection)
+integration.load_notification_config(integrations_collection)
 
 scan_status_collection.delete_many({'status': 'running'})
 
@@ -388,7 +388,7 @@ class Integrations(Resource):
             integrations_collection.replace_one({'type': 'telegram'}, {'type': 'telegram', 'details': {
                 'telegramBotToken': telegram_bot_token, 'telegramChatId': telegram_chat_id}}, upsert=True)
 
-        load_notification_config(integrations_collection)
+        integration.load_notification_config(integrations_collection)
 
         return {'status': 'ok'}
 

@@ -20,7 +20,7 @@ type DragAndDropProps = {
 };
 
 const fallbackFileName = "<not selected>";
-const fileTypes = ["PCAP", "JPG", "PNG", "GIF"];
+const fileTypes = ["PCAP"];
 const maxSize = 15;
 
 const DragAndDrop = ({ file, scanFile, setFile }: DragAndDropProps) => {

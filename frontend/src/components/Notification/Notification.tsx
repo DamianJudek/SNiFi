@@ -43,8 +43,8 @@ export const Notification = ({
         return "One of the devices on your network has changed its IP address";
       case "device_offline":
         return "One of the devices has disappeared from your network";
-      case `We have blocked the DNS query to a suspicious domain: ${query}`:
-        return "Blocked DNS";
+      case "blocked_query":
+        return `We have blocked the DNS query to a suspicious domain: ${query}`;
     }
   };
 
